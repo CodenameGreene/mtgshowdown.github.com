@@ -112,10 +112,23 @@
   </div>
 
   <!-- Play Screen -->
-  <div id="playScreen" style="display:none;">
-    <h2>Game Mode</h2>
-    <button class="small-button" onclick="returnToMain()">Return</button>
+ <div id="playScreen" style="display:none;">
+  <h2>Game Mode</h2>
+
+  <!-- Play area styled using your CSS -->
+  <div id="playArea">
+    <div class="battlefield">
+      <h3>Battlefield</h3>
+      <div class="cards" id="battlefieldCards"></div>
+    </div>
+    <div class="hand">
+      <h3>Your Hand</h3>
+      <div class="cards" id="handCards"></div>
+    </div>
   </div>
+
+  <button class="small-button" onclick="returnToMain()">Return</button>
+</div>
 
   <!-- Hover Preview -->
   <div id="hoverPreview" style="
