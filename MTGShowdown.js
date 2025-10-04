@@ -230,9 +230,9 @@ function renderDeck() {
     const li = document.createElement("li");
     li.innerHTML = `
       <span class="card-name" style="cursor:pointer; text-decoration:underline;">${card.name}</span>
-      <button onclick="modifyCard(${index}, -1)">-</button>
+      <button class="small-button" onclick="modifyCard(${index}, -1)">-</button>
       <span>${card.qty}</span>
-      <button onclick="modifyCard(${index}, 1)">+</button>
+      <button class="small-button" onclick="modifyCard(${index}, 1)">+</button>
     `;
 
     // Hover preview
