@@ -168,7 +168,10 @@ function saveDeck() {
   const name = document.getElementById("deckNameInput").value.trim();
   const format = document.getElementById("deckFormatSelect").value;
 
-  if (!name || !format) return alert("Enter deck name and select format.");
+  if (!name || !format) {
+    alert("Enter deck name and select format.");
+    return;
+  }
 
   currentDeck.name = name;
   currentDeck.format = format;
@@ -176,17 +179,32 @@ function saveDeck() {
   const user = auth.currentUser;
   if (!user) return alert("Not logged in.");
 
-  db.collection("decks").add({
-    owner: user.uid,
-    name: name,
-    format: format,
-    cards: currentDeck.cards
-  }).then(() => {
-    alert("Deck saved!");
-    loadSavedDecks();
-  });
+  if (currentDeck.id) {
+    // Update existing deck
+    db.collection("decks").doc(currentDeck.id).set({
+      owner: user.uid,
+      name: name,
+      format: format,
+      cards: currentDeck.cards
+    }).then(() => {
+      alert("Deck updated!");
+      loadSavedDecks();
+    });
+  } else {
+    // Add new deck
+    db.collection("decks").add({
+      owner: user.uid,
+      name: name,
+      format: format,
+      cards: currentDeck.cards
+    }).then(() => {
+      alert("Deck saved!");
+      loadSavedDecks();
+    });
+  }
 }
 window.saveDeck = saveDeck;
+
 
 function loadSavedDecks() {
   const user = auth.currentUser;
