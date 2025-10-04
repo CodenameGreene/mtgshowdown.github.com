@@ -284,7 +284,7 @@ window.renderDeck = renderDeck;
 async function checkDeckLegality() {
   const formatLabel = document.getElementById("menuButton").innerText.replace(' ▾', '');
   const format = formatLabel;
-  const deckSize = currentDeck.cards.length;
+  const deckSize = currentDeck.cards.reduce((total, card) => total + (card.qty || 0), 0);
 
   if (!format) {
     alert("Select a format on the main screen.");
