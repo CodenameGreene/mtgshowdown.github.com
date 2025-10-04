@@ -456,53 +456,112 @@ async function searchCards() {
 }
 window.searchCards = searchCards;
 //play logic
-let playerHand = [];
-let battlefield = [];
-
+let player = {
+  deck: [],
+  hand: [],
+  battlefield: [],
+  manaPool: 0,
+  landsPlayed: 0,
+  turn: 1
+};
 function startGame() {
   if (!currentDeck.cards || getDeckSize() === 0) {
     alert("Your deck is empty!");
     return;
   }
 
-  // Flatten deck: create array with each card repeated by qty
+  // Flatten and shuffle deck
   let fullDeck = [];
   currentDeck.cards.forEach(c => {
-    for (let i = 0; i < c.qty; i++) {
-      fullDeck.push({ ...c });
-    }
+    for (let i = 0; i < c.qty; i++) fullDeck.push({ ...c });
   });
-
-  // Shuffle deck
   fullDeck.sort(() => Math.random() - 0.5);
 
-  // Draw 7 cards
-  playerHand = fullDeck.splice(0, 7);
-  battlefield = []; // empty battlefield
+  // Initialize player state
+  player.deck = fullDeck;
+  player.hand = player.deck.splice(0, 7);
+  player.battlefield = [];
+  player.manaPool = 0;
+  player.landsPlayed = 0;
+  player.turn = 1;
+
+  renderPlayScreen();
+}
+function renderPlayScreen() {
+  const handDiv = document.getElementById("hand");
+  const battlefieldDiv = document.getElementById("battlefield");
+
+  handDiv.innerHTML = "";
+  battlefieldDiv.innerHTML = "";
+
+  // Show hand (with click to play)
+  player.hand.forEach((card, index) => {
+    const img = document.createElement("img");
+    img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+    img.classList.add("card");
+    img.onclick = () => playCard(index);
+    img.onmouseenter = () => showCardPreview(card.name);
+    img.onmouseleave = hideCardPreview;
+    handDiv.appendChild(img);
+  });
+
+  // Show battlefield
+  player.battlefield.forEach((card, index) => {
+    const img = document.createElement("img");
+    img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+    img.classList.add("card", "battlefield-card");
+
+    if (card.isTapped) img.style.filter = "grayscale(80%) rotate(90deg)";
+    img.onclick = () => tapCard(index);
+
+    battlefieldDiv.appendChild(img);
+  });
+
+  document.getElementById("playFormat").innerText = currentDeck.format || "Unknown";
+  document.getElementById("manaCount").innerText = `Mana: ${player.manaPool}`;
+  document.getElementById("turnCounter").innerText = `Turn: ${player.turn}`;
+}
+function playCard(index) {
+  const card = player.hand[index];
+
+  // Lands: free, 1 per turn
+  if (isLand(card)) {
+    if (player.landsPlayed >= 1) {
+      alert("You already played a land this turn!");
+      return;
+    }
+    player.hand.splice(index, 1);
+    player.battlefield.push({ ...card, isTapped: false, type: "land" });
+    player.landsPlayed++;
+  } 
+  // Other cards: require mana
+  else {
+    if (player.manaPool < 1) { // you can later replace with card.cost
+      alert("Not enough mana to play this card!");
+      return;
+    }
+    player.manaPool--; // spend mana
+    player.hand.splice(index, 1);
+    player.battlefield.push({ ...card, isTapped: false });
+  }
 
   renderPlayScreen();
 }
 
-function renderPlayScreen() {
-  const handDiv = document.getElementById("hand");
-  handDiv.innerHTML = "";
+function tapCard(index) {
+  const card = player.battlefield[index];
+  if (card.isTapped) return;
 
-  playerHand.forEach((card, index) => {
-    const img = document.createElement("img");
-    img.classList.add("card-image");
-    img.alt = card.name;
-    img.title = card.name;
-    img.src = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+  if (isLand(card)) {
+    player.manaPool++;
+    card.isTapped = true;
+    renderPlayScreen();
+  }
+}
 
-    // Play card when clicked
-    img.onclick = () => playCard(index);
-
-    // Hover preview (optional)
-    img.addEventListener("mouseover", () => showCardPreview(card.name));
-    img.addEventListener("mouseout", hideCardPreview);
-
-    handDiv.appendChild(img);
-  });
+function isLand(card) {
+  return card.type_line && card.type_line.includes("Land") || card.name.toLowerCase().includes("land");
+}
   function showCardPreview(cardName) {
   const previewDiv = document.getElementById("hoverPreview");
   const previewImg = document.getElementById("hoverPreviewImg");
@@ -543,8 +602,17 @@ function playCard(index) {
 }
 
 function endTurn() {
-  alert("Turn ended!");
-  // You can add more turn logic here later
+  // Untap all battlefield cards
+  player.battlefield.forEach(card => card.isTapped = false);
+
+  // Draw a card
+  if (player.deck.length > 0) {
+    player.hand.push(player.deck.shift());
+  }
+
+  // Reset per-turn limits
+  player.landsPlayed = 0;
+  player.turn++;
+
+  renderPlayScreen();
 }
-
-
