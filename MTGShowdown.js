@@ -503,6 +503,19 @@ function renderPlayScreen() {
 
     handDiv.appendChild(img);
   });
+  function showCardPreview(cardName) {
+  const previewDiv = document.getElementById("hoverPreview");
+  const previewImg = document.getElementById("hoverPreviewImg");
+  
+  previewImg.src = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}&format=image`;
+  previewDiv.style.display = "block";
+}
+
+function hideCardPreview() {
+  const previewDiv = document.getElementById("hoverPreview");
+  previewDiv.style.display = "none";
+}
+
 
   const battlefieldDiv = document.getElementById("battlefield");
   battlefieldDiv.innerHTML = "";
