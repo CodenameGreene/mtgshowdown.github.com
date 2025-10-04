@@ -592,9 +592,9 @@ function playCard(index) {
         return;
     }
 
-    // Non-land permanents
-    if (!isPermanent(card)) {
-        alert("This type of card cannot be played to the battlefield!");
+    // Non-land cards: only permanents allowed (creature, artifact, enchantment, planeswalker)
+    if (!card.type_line || /instant|sorcery/i.test(card.type_line)) {
+        alert("Only permanents (creature, artifact, enchantment, planeswalker) can be played to the battlefield!");
         return;
     }
 
@@ -614,7 +614,6 @@ function playCard(index) {
     player.battlefield.push({ ...card, isTapped: false });
     renderPlayScreen();
 }
-
 // =====================
 // Tap a land manually
 // =====================
