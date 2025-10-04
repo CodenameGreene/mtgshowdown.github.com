@@ -431,4 +431,67 @@ async function searchCards() {
   }
 }
 window.searchCards = searchCards;
+//play logic
+let playerHand = [];
+let battlefield = [];
+
+function startGame() {
+  if (!currentDeck.cards || currentDeck.cards.length === 0) {
+    alert("Your deck is empty!");
+    return;
+  }
+
+  // Flatten deck: create array with each card repeated by qty
+  let fullDeck = [];
+  currentDeck.cards.forEach(c => {
+    for (let i = 0; i < c.qty; i++) {
+      fullDeck.push({ ...c });
+    }
+  });
+
+  // Shuffle deck
+  fullDeck.sort(() => Math.random() - 0.5);
+
+  // Draw 7 cards
+  playerHand = fullDeck.splice(0, 7);
+  battlefield = []; // empty battlefield
+
+  renderPlayScreen();
+}
+
+function renderPlayScreen() {
+  const handDiv = document.getElementById("hand");
+  handDiv.innerHTML = "";
+  playerHand.forEach((card, index) => {
+    const cardDiv = document.createElement("div");
+    cardDiv.classList.add("card");
+    cardDiv.textContent = card.name;
+    cardDiv.onclick = () => playCard(index);
+    handDiv.appendChild(cardDiv);
+  });
+
+  const battlefieldDiv = document.getElementById("battlefield");
+  battlefieldDiv.innerHTML = "";
+  battlefield.forEach(card => {
+    const cardDiv = document.createElement("div");
+    cardDiv.classList.add("card", "battlefield-card");
+    cardDiv.textContent = card.name;
+    battlefieldDiv.appendChild(cardDiv);
+  });
+
+  // Update format info
+  document.getElementById("playFormat").innerText = currentDeck.format || "Unknown";
+}
+
+function playCard(index) {
+  const card = playerHand.splice(index, 1)[0];
+  battlefield.push(card);
+  renderPlayScreen();
+}
+
+function endTurn() {
+  alert("Turn ended!");
+  // You can add more turn logic here later
+}
+
 
