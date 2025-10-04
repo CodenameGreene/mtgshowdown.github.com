@@ -1,23 +1,30 @@
-const auth = window.auth;
-const db = window.db;
+// =====================
+// mainScreen.js
+// =====================
+
+// Use globally initialized Firebase
+var auth = window.auth;
+var db = window.db;
 
 // =====================
 // Format Dropdown
 // =====================
 function changeMenuLabel(label) {
-  document.getElementById("menuButton").innerText = label + " ▾";
+  const btn = document.getElementById("menuButton");
+  if (btn) btn.innerText = label + " ▾";
 }
 window.changeMenuLabel = changeMenuLabel;
 
 function toggleDropdown() {
-  document.getElementById("formatDropdown").classList.toggle("show");
+  const dropdown = document.getElementById("formatDropdown");
+  if (dropdown) dropdown.classList.toggle("show");
 }
 window.toggleDropdown = toggleDropdown;
 
 window.onclick = function(event) {
   if (!event.target.matches('#menuButton')) {
     const dropdown = document.getElementById("formatDropdown");
-    if (dropdown.classList.contains("show")) dropdown.classList.remove("show");
+    if (dropdown && dropdown.classList.contains("show")) dropdown.classList.remove("show");
   }
 }
 
@@ -28,97 +35,127 @@ function showDeckBuilder() {
   document.getElementById("mainScreen").style.display = "none";
   document.getElementById("deckBuilder").style.display = "block";
 }
+window.showDeckBuilder = showDeckBuilder;
 
 function returnToMain() {
-  document.getElementById("mainScreen").style.display = "block";
-  document.getElementById("deckBuilder").style.display = "none";
-  document.getElementById("playScreen").style.display = "none";
+  const main = document.getElementById("mainScreen");
+  const deck = document.getElementById("deckBuilder");
+  const play = document.getElementById("playScreen");
+  if (main) main.style.display = "block";
+  if (deck) deck.style.display = "none";
+  if (play) play.style.display = "none";
 }
+window.returnToMain = returnToMain;
 
 function goToPlayScreen() {
-  document.getElementById("mainScreen").style.display = "none";
-  document.getElementById("deckBuilder").style.display = "none";
-  document.getElementById("playScreen").style.display = "block";
+  const main = document.getElementById("mainScreen");
+  const deck = document.getElementById("deckBuilder");
+  const play = document.getElementById("playScreen");
+  if (main) main.style.display = "none";
+  if (deck) deck.style.display = "none";
+  if (play) play.style.display = "block";
 }
-
-window.showDeckBuilder = showDeckBuilder;
-window.returnToMain = returnToMain;
 window.goToPlayScreen = goToPlayScreen;
 
 // =====================
 // Auth
 // =====================
 function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+  const email = document.getElementById("email")?.value;
+  const password = document.getElementById("password")?.value;
+  if (!email || !password) return;
 
   auth.signInWithEmailAndPassword(email, password)
     .then(() => {
-      document.getElementById("status").style.color = "green";
-      document.getElementById("status").innerText = "Login successful!";
+      const status = document.getElementById("status");
+      if (status) {
+        status.style.color = "green";
+        status.innerText = "Login successful!";
+      }
       loadUserDecks();
+      loadSavedDecks();
     })
     .catch(error => {
-      document.getElementById("status").style.color = "red";
-      document.getElementById("status").innerText = error.message;
+      const status = document.getElementById("status");
+      if (status) {
+        status.style.color = "red";
+        status.innerText = error.message;
+      }
     });
 }
+window.login = login;
 
 function signup() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+  const email = document.getElementById("email")?.value;
+  const password = document.getElementById("password")?.value;
+  if (!email || !password) return;
 
   auth.createUserWithEmailAndPassword(email, password)
     .then(() => {
-      document.getElementById("status").style.color = "green";
-      document.getElementById("status").innerText = "Account created!";
+      const status = document.getElementById("status");
+      if (status) {
+        status.style.color = "green";
+        status.innerText = "Account created!";
+      }
       loadUserDecks();
+      loadSavedDecks();
     })
     .catch(error => {
-      document.getElementById("status").style.color = "red";
-      document.getElementById("status").innerText = error.message;
+      const status = document.getElementById("status");
+      if (status) {
+        status.style.color = "red";
+        status.innerText = error.message;
+      }
     });
 }
+window.signup = signup;
 
 function logout() {
   auth.signOut()
     .then(() => {
-      document.getElementById("status").innerText = "Logged out.";
-      document.getElementById("mainDeckSelect").innerHTML = `<option value="">-- Select Deck --</option>`;
+      const status = document.getElementById("status");
+      if (status) status.innerText = "Logged out.";
+      const deckSelect = document.getElementById("mainDeckSelect");
+      if (deckSelect) deckSelect.innerHTML = `<option value="">-- Select Deck --</option>`;
     })
     .catch(error => {
-      document.getElementById("status").innerText = error.message;
+      const status = document.getElementById("status");
+      if (status) status.innerText = error.message;
     });
 }
+window.logout = logout;
 
+// =====================
+// Auth State Listener
+// =====================
 auth.onAuthStateChanged(user => {
   const loginContainer = document.querySelector(".container");
   const userInfoDiv = document.getElementById("userInfo");
-
+  
   if (user) {
     if (loginContainer) loginContainer.style.display = "none";
-    userInfoDiv.innerHTML = `
-      <p>Logged in as <strong>${user.email}</strong></p>
-      <button class="small-button" onclick="logout()">Logout</button>
-    `;
+    if (userInfoDiv) {
+      userInfoDiv.innerHTML = `
+        <p>Logged in as <strong>${user.email}</strong></p>
+        <button class="small-button" onclick="logout()">Logout</button>
+      `;
+    }
     loadUserDecks();
+    loadSavedDecks();
   } else {
     if (loginContainer) loginContainer.style.display = "block";
-    userInfoDiv.innerHTML = "";
+    if (userInfoDiv) userInfoDiv.innerHTML = "";
   }
 });
-
-window.login = login;
-window.signup = signup;
-window.logout = logout;
 
 // =====================
 // Load user decks for main screen dropdown
 // =====================
 function loadUserDecks() {
   const deckSelect = document.getElementById("mainDeckSelect");
+  if (!deckSelect) return;
   deckSelect.innerHTML = `<option value="">-- Select Deck --</option>`;
-  
+
   const user = auth.currentUser;
   if (!user) return;
 
@@ -133,4 +170,17 @@ function loadUserDecks() {
       });
     });
 }
-window.loadUser
+window.loadUserDecks = loadUserDecks;
+
+// =====================
+// Enable play button if a deck is selected
+// =====================
+function updatePlayButton() {
+  const selected = document.getElementById("mainDeckSelect")?.value;
+  const playBtn = document.getElementById("playButton");
+  if (playBtn) playBtn.disabled = !selected;
+}
+window.updatePlayButton = updatePlayButton;
+
+window.playDeck = goToPlayScreen;
+
