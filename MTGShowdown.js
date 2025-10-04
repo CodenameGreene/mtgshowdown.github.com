@@ -45,11 +45,27 @@ function returnToMain() {
 }
 
 function goToPlayScreen() {
+  const deckSelect = document.getElementById("mainDeckSelect");
+  if (!deckSelect || !deckSelect.value) {
+    alert("Please select a deck from the main screen first!");
+    return;
+  }
+
+  // Update currentDeck from selected deck
+  const selectedDeckId = deckSelect.value;
+  db.collection("decks").doc(selectedDeckId).get()
+    .then(doc => {
+      if (!doc.exists) return alert("Selected deck not found.");
+
+      currentDeck = doc.data();
+      currentDeck.id = doc.id;
+      if (!currentDeck.cards) currentDeck.cards = [];
   checkDeckLegality().then(isLegal => {
     if (isLegal) {
       document.getElementById("mainScreen").style.display = "none";
       document.getElementById("deckBuilder").style.display = "none";
       document.getElementById("playScreen").style.display = "block";
+      startGame();
     }
   }); // <-- close the .then() properly
 }
