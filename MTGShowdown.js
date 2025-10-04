@@ -572,43 +572,46 @@ function getCardManaCost(card) {
 // =====================
 // Play a card from hand
 // =====================
+function isPermanent(card) {
+    const types = ["creature", "artifact", "enchantment", "planeswalker", "land"];
+    const line = card.type_line?.toLowerCase() || "";
+    return types.some(t => line.includes(t));
+}
 function playCard(index) {
     const card = player.hand[index];
 
     // Lands
-    if (isLand(card)) {
-        if (player.landsPlayed >= 1) {
-            alert("You already played a land this turn!");
-            return;
-        }
-        player.hand.splice(index, 1);
-        player.battlefield.push({ ...card, isTapped: false });
-        player.landsPlayed++;
-        renderPlayScreen();
-        return;
-    }
-
-    // Non-land cards
-    const cost = getCardManaCost(card);
-
-    // Count untapped lands
-    const untappedLands = player.battlefield.filter(c => isLand(c) && !c.isTapped);
-
-    if (untappedLands.length < cost) {
-        alert("Not enough mana! Tap more lands first.");
-        return;
-    }
-
-    // Tap lands to pay
-    for (let i = 0; i < cost; i++) {
-        untappedLands[i].isTapped = true;
-    }
-
-    // Move card to battlefield
+   if (isLand(card)) {
+    if (player.landsPlayed >= 1) { alert("Already played a land!"); return; }
     player.hand.splice(index, 1);
     player.battlefield.push({ ...card, isTapped: false });
-
+    player.landsPlayed++;
     renderPlayScreen();
+    return;
+}
+
+// Non-lands
+const cost = getCardManaCost(card);
+const untappedLands = player.battlefield.filter(c => isLand(c) && !c.isTapped);
+
+if (untappedLands.length < cost) {
+    alert("Not enough mana! Tap more lands first.");
+    return;
+}
+
+// Only allow permanents to go to battlefield
+if (!isPermanent(card)) {
+    alert("This type of card cannot be played to the battlefield!");
+    return;
+}
+
+// Tap lands to pay
+for (let i = 0; i < cost; i++) untappedLands[i].isTapped = true;
+
+// Move card to battlefield
+player.hand.splice(index, 1);
+player.battlefield.push({ ...card, isTapped: false });
+renderPlayScreen();
 }
 
 // =====================
