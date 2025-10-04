@@ -208,7 +208,6 @@ function loadSavedDecks() {
     });
 }
 window.loadSavedDecks = loadSavedDecks;
-
 function loadSelectedDeck() {
   const deckId = document.getElementById("savedDecks").value;
   if (!deckId) return;
@@ -216,9 +215,15 @@ function loadSelectedDeck() {
   db.collection("decks").doc(deckId).get()
     .then(doc => {
       if (!doc.exists) return alert("Deck not found.");
+
       currentDeck = doc.data();
       currentDeck.id = doc.id;
       if (!currentDeck.cards) currentDeck.cards = [];
+
+      // Fill deck name and format inputs
+      document.getElementById("deckNameInput").value = currentDeck.name;
+      document.getElementById("deckFormatSelect").value = currentDeck.format;
+
       renderDeck();
     });
 }
