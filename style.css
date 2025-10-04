@@ -1,0 +1,236 @@
+body {
+  background-image: url('mountain_by_noahbradley_d8z9vvv.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  color: #000; /* Change default text to black */
+  text-align: center;
+}
+
+/* Reusable card-style panel */
+.panel {
+  background: rgba(255, 255, 255, 0.95);
+  color: #222; /* Ensure text inside panels is dark */
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  text-align: left;
+}
+
+/* Login container */
+.container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  color: #222; /* Ensure login text is dark */
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #aaa;
+  color: #000; /* Inputs text black */
+}
+
+/* Status messages */
+#status {
+  color: red;
+}
+
+/* Dropdown */
+.dropdown {
+  position: relative;
+  display: inline-block;
+  margin: 15px 0;
+}
+
+.dropbtn {
+  background-color: #333;
+  color: white;
+  padding: 14px 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  border-radius: 6px;
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+/* Small buttons */
+.small-button {
+  width: auto;
+  padding: 6px 12px;
+  font-size: 14px;
+  margin: 5px;
+  background-color: #444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.small-button:hover {
+  background-color: #666;
+}
+
+/* User info box */
+#userInfo {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  font-size: 14px;
+  line-height: 1.4;
+  color: #222;
+}
+
+#userInfo p {
+  margin: 0 0 10px;
+}
+
+/* Deck Builder UI */
+#deckBuilderUI {
+  margin-top: 20px;
+}
+
+#cardSearchInput {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  color: #000; /* Text in search input black */
+}
+
+#cardSearchResults div {
+  background: rgba(255,255,255,0.9);
+  padding: 8px;
+  border-radius: 6px;
+  margin: 6px 0;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  color: #000; /* Search result text black */
+}
+
+#cardSearchResults div:hover {
+  background: #eee;
+}
+
+/* Deck list */
+#deckList {
+  list-style: none;
+  padding: 0;
+}
+
+#deckList li {
+  position: relative;
+  background: rgba(255, 255, 255, 0.95);
+  color: #000; /* Deck list text black */
+  padding: 8px;
+  margin: 6px 0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+#playArea {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: green;
+  padding: 10px;
+}
+
+.battlefield {
+  border: 2px solid #000;
+  padding: 10px;
+  background: #2e8b57;
+}
+
+.cards {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  min-height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.hand {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.card {
+  padding: 5px;
+  border: 1px solid black;
+  background: white;
+  width: 80px;
+  height: 110px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.battlefield-card {
+  cursor: default;
+}
+.card-name {
+  position: relative;
+  cursor: pointer;
+}
+
+.hover-image {
+  display: none;          /* hidden by default */
+  position: absolute;     /* so it can float above content */
+  max-width: 200px;       /* adjust size as needed */
+  border: 1px solid #ccc;
+  background-color: white;
+  padding: 5px;
+  z-index: 1000;          /* ensures it stays on top */
+  pointer-events: none;   /* allows clicks to pass through */
+}
+
+li:hover .hover-image {
+  display: block;
+}
