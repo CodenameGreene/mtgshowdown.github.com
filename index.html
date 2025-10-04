@@ -116,20 +116,20 @@
   <h2>Game Mode</h2>
 
   <!-- Play area styled using your CSS -->
-  <div id="playArea">
-    <div class="battlefield">
-      <h3>Battlefield</h3>
-      <div class="cards" id="battlefieldCards"></div>
-    </div>
-    <div class="hand">
-      <h3>Your Hand</h3>
-      <div class="cards" id="handCards"></div>
-    </div>
-  </div>
-
+  <div id="playScreen" style="display:none;">
+  <h2>Game Mode: <span id="playFormat"></span></h2>
   <button class="small-button" onclick="returnToMain()">Return</button>
-</div>
 
+  <div id="playArea" class="panel">
+    <h3>Your Hand</h3>
+    <div id="hand" class="hand"></div>
+
+    <h3>Battlefield</h3>
+    <div id="battlefield" class="battlefield"></div>
+
+    <button class="small-button" onclick="endTurn()">End Turn</button>
+  </div>
+</div>
   <!-- Hover Preview -->
   <div id="hoverPreview" style="
       display:none;
