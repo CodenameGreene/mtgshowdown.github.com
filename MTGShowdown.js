@@ -280,11 +280,13 @@ function renderDeck() {
   });
 }
 window.renderDeck = renderDeck;
-
+function getDeckSize() {
+  return currentDeck.cards.reduce((total, card) => total + (card.qty || 0), 0);
+}
 async function checkDeckLegality() {
   const formatLabel = document.getElementById("menuButton").innerText.replace(' ▾', '');
   const format = formatLabel;
-  const deckSize = currentDeck.cards.reduce((total, card) => total + (card.qty || 0), 0);
+  const deckSize = getDeckSize();
 
   if (!format) {
     alert("Select a format on the main screen.");
