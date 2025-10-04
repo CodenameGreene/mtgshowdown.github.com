@@ -543,28 +543,18 @@ function renderPlayScreen() {
 // =====================
 // Helper Functions
 // =====================
+// =====================
+// Helper Functions
+// =====================
 function isLand(card) {
-    // Uses Scryfall type_line to detect any type of land
+    // Detect any type of land from Scryfall type_line
     return card.type_line?.toLowerCase().includes("land");
 }
 
-function isPlayable(card) {
-    // Lands are always playable once per turn, others require mana
-    if (isLand(card)) return player.landsPlayed < 1;
-    return player.manaPool >= getCardManaCost(card);
-}
-
 function getCardManaCost(card) {
-    // For now, assume all non-land cards cost 1 mana
-    // Later you can parse card.mana_cost if you store it from Scryfall
-    return card.mana_cost ? parseManaCost(card.mana_cost) : 1;
-}
-
-function parseManaCost(manaString) {
-    // Very simple parser: count all mana symbols as 1 each
-    // e.g., "{2}{G}" => 3
-    if (!manaString) return 0;
-    const matches = manaString.match(/\{[^}]+\}/g);
+    // Simple parser: each mana symbol counts as 1
+    if (!card.mana_cost) return 0;
+    const matches = card.mana_cost.match(/\{[^}]+\}/g);
     return matches ? matches.length : 0;
 }
 
@@ -574,56 +564,59 @@ function parseManaCost(manaString) {
 function playCard(index) {
     const card = player.hand[index];
 
+    // Lands
     if (isLand(card)) {
         if (player.landsPlayed >= 1) {
             alert("You already played a land this turn!");
             return;
         }
         player.hand.splice(index, 1);
-        player.battlefield.push({ ...card, isTapped: false, type: "land" });
-        player.landsPlayed++;
-    } else {
-        const cost = getCardManaCost(card);
-
-        // Optional: auto-tap untapped lands to pay
-        let availableLands = player.battlefield.filter(c => isLand(c) && !c.isTapped);
-        let manaGenerated = availableLands.length;
-
-        if (manaGenerated < cost) {
-            alert("Not enough mana! Tap more lands first.");
-            return;
-        }
-
-        // Tap lands automatically to pay for card
-        for (let i = 0; i < cost; i++) {
-            availableLands[i].isTapped = true;
-        }
-
-        player.hand.splice(index, 1);
         player.battlefield.push({ ...card, isTapped: false });
+        player.landsPlayed++;
+        renderPlayScreen();
+        return;
     }
+
+    // Non-land cards
+    const cost = getCardManaCost(card);
+
+    // Count untapped lands
+    const untappedLands = player.battlefield.filter(c => isLand(c) && !c.isTapped);
+
+    if (untappedLands.length < cost) {
+        alert("Not enough mana! Tap more lands first.");
+        return;
+    }
+
+    // Tap lands to pay
+    for (let i = 0; i < cost; i++) {
+        untappedLands[i].isTapped = true;
+    }
+
+    // Move card to battlefield
+    player.hand.splice(index, 1);
+    player.battlefield.push({ ...card, isTapped: false });
 
     renderPlayScreen();
 }
+
 // =====================
-// Tap a land to add mana
+// Tap a land manually to add "mana"
 // =====================
 function tapCard(index) {
     const card = player.battlefield[index];
+    if (!isLand(card)) return; // Only lands can be tapped manually
     if (card.isTapped) return;
 
-    if (isLand(card)) {
-        player.manaPool++;
-        card.isTapped = true;
-        renderPlayScreen();
-    }
+    card.isTapped = true;
+    renderPlayScreen();
 }
 
 // =====================
 // End turn
 // =====================
 function endTurn() {
-    // Untap all battlefield cards
+    // Untap all cards
     player.battlefield.forEach(card => card.isTapped = false);
 
     // Draw a card
