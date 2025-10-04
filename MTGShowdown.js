@@ -562,9 +562,12 @@ function isLand(card) {
 }
 
 function isPermanent(card) {
-    const types = ["creature", "artifact", "enchantment", "planeswalker", "land"];
-    const line = card.type_line?.toLowerCase() || "";
-    return types.some(t => line.includes(t));
+    if (!card.type_line) return false; // If no type_line, can't play it
+
+    const types = card.type_line.toLowerCase();
+
+    // Permanents are: land, creature, artifact, enchantment, planeswalker
+    return /land|creature|artifact|enchantment|planeswalker/.test(types);
 }
 
 function getCardManaCost(card) {
@@ -579,7 +582,6 @@ function getCardManaCost(card) {
 function playCard(index) {
     const card = player.hand[index];
 
-    // Lands
     if (isLand(card)) {
         if (player.landsPlayed >= 1) {
             alert("You already played a land this turn!");
@@ -592,8 +594,8 @@ function playCard(index) {
         return;
     }
 
-    // Non-land cards: only permanents allowed (creature, artifact, enchantment, planeswalker)
-    if (!card.type_line || /instant|sorcery/i.test(card.type_line)) {
+    // Non-land: must be a permanent
+    if (!isPermanent(card)) {
         alert("Only permanents (creature, artifact, enchantment, planeswalker) can be played to the battlefield!");
         return;
     }
@@ -606,10 +608,9 @@ function playCard(index) {
         return;
     }
 
-    // Tap lands to pay mana
+    // Tap lands to pay
     for (let i = 0; i < cost; i++) untappedLands[i].isTapped = true;
 
-    // Move card to battlefield
     player.hand.splice(index, 1);
     player.battlefield.push({ ...card, isTapped: false });
     renderPlayScreen();
