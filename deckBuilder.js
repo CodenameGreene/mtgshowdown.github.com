@@ -1,47 +1,163 @@
 // =====================
-// Firebase references
+// mainScreen.js
 // =====================
+
+// Use globally initialized Firebase
 var auth = window.auth;
 var db = window.db;
 
-// Current deck in memory
-let currentDeck = { name: "", format: "", cards: [] };
-
 // =====================
-// Deck Builder Functions
+// Format Dropdown
 // =====================
-function saveDeck() {
-  const name = document.getElementById("deckNameInput").value.trim();
-  const format = document.getElementById("deckFormatSelect").value;
-
-  if (!name || !format) {
-    alert("Enter deck name and select format.");
-    return;
-  }
-
-  currentDeck.name = name;
-  currentDeck.format = format;
-
-  const user = auth.currentUser;
-  if (!user) return alert("Not logged in.");
-
-  db.collection("decks").add({
-    owner: user.uid,
-    name: name,
-    format: format,
-    cards: currentDeck.cards
-  }).then(() => {
-    alert("Deck saved!");
-    loadSavedDecks();
-  });
+function changeMenuLabel(label) {
+  const btn = document.getElementById("menuButton");
+  if (btn) btn.innerText = label + " ▾";
 }
-window.saveDeck = saveDeck;
+window.changeMenuLabel = changeMenuLabel;
 
-function loadSavedDecks() {
+function toggleDropdown() {
+  const dropdown = document.getElementById("formatDropdown");
+  if (dropdown) dropdown.classList.toggle("show");
+}
+window.toggleDropdown = toggleDropdown;
+
+window.onclick = function(event) {
+  if (!event.target.matches('#menuButton')) {
+    const dropdown = document.getElementById("formatDropdown");
+    if (dropdown && dropdown.classList.contains("show")) dropdown.classList.remove("show");
+  }
+}
+
+// =====================
+// Screen Navigation
+// =====================
+function showDeckBuilder() {
+  document.getElementById("mainScreen").style.display = "none";
+  document.getElementById("deckBuilder").style.display = "block";
+}
+window.showDeckBuilder = showDeckBuilder;
+
+function returnToMain() {
+  const main = document.getElementById("mainScreen");
+  const deck = document.getElementById("deckBuilder");
+  const play = document.getElementById("playScreen");
+  if (main) main.style.display = "block";
+  if (deck) deck.style.display = "none";
+  if (play) play.style.display = "none";
+}
+window.returnToMain = returnToMain;
+
+function goToPlayScreen() {
+  const main = document.getElementById("mainScreen");
+  const deck = document.getElementById("deckBuilder");
+  const play = document.getElementById("playScreen");
+  if (main) main.style.display = "none";
+  if (deck) deck.style.display = "none";
+  if (play) play.style.display = "block";
+}
+window.goToPlayScreen = goToPlayScreen;
+
+// =====================
+// Auth
+// =====================
+function login() {
+  const email = document.getElementById("email")?.value;
+  const password = document.getElementById("password")?.value;
+  if (!email || !password) return;
+
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => {
+      const status = document.getElementById("status");
+      if (status) {
+        status.style.color = "green";
+        status.innerText = "Login successful!";
+      }
+      loadUserDecks();
+      loadSavedDecks();
+    })
+    .catch(error => {
+      const status = document.getElementById("status");
+      if (status) {
+        status.style.color = "red";
+        status.innerText = error.message;
+      }
+    });
+}
+window.login = login;
+
+function signup() {
+  const email = document.getElementById("email")?.value;
+  const password = document.getElementById("password")?.value;
+  if (!email || !password) return;
+
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(() => {
+      const status = document.getElementById("status");
+      if (status) {
+        status.style.color = "green";
+        status.innerText = "Account created!";
+      }
+      loadUserDecks();
+      loadSavedDecks();
+    })
+    .catch(error => {
+      const status = document.getElementById("status");
+      if (status) {
+        status.style.color = "red";
+        status.innerText = error.message;
+      }
+    });
+}
+window.signup = signup;
+
+function logout() {
+  auth.signOut()
+    .then(() => {
+      const status = document.getElementById("status");
+      if (status) status.innerText = "Logged out.";
+      const deckSelect = document.getElementById("mainDeckSelect");
+      if (deckSelect) deckSelect.innerHTML = `<option value="">-- Select Deck --</option>`;
+    })
+    .catch(error => {
+      const status = document.getElementById("status");
+      if (status) status.innerText = error.message;
+    });
+}
+window.logout = logout;
+
+// =====================
+// Auth State Listener
+// =====================
+auth.onAuthStateChanged(user => {
+  const loginContainer = document.querySelector(".container");
+  const userInfoDiv = document.getElementById("userInfo");
+  
+  if (user) {
+    if (loginContainer) loginContainer.style.display = "none";
+    if (userInfoDiv) {
+      userInfoDiv.innerHTML = `
+        <p>Logged in as <strong>${user.email}</strong></p>
+        <button class="small-button" onclick="logout()">Logout</button>
+      `;
+    }
+    loadUserDecks();
+    loadSavedDecks();
+  } else {
+    if (loginContainer) loginContainer.style.display = "block";
+    if (userInfoDiv) userInfoDiv.innerHTML = "";
+  }
+});
+
+// =====================
+// Load user decks for main screen dropdown
+// =====================
+function loadUserDecks() {
+  const deckSelect = document.getElementById("mainDeckSelect");
+  if (!deckSelect) return;
+  deckSelect.innerHTML = `<option value="">-- Select Deck --</option>`;
+
   const user = auth.currentUser;
   if (!user) return;
-  const select = document.getElementById("savedDecks");
-  select.innerHTML = `<option value="">-- Select Deck --</option>`;
 
   db.collection("decks").where("owner", "==", user.uid).get()
     .then(snapshot => {
@@ -49,113 +165,21 @@ function loadSavedDecks() {
         const data = doc.data();
         const option = document.createElement("option");
         option.value = doc.id;
-        option.textContent = data.name;
-        select.appendChild(option);
+        option.textContent = data.name + " (" + data.format + ")";
+        deckSelect.appendChild(option);
       });
     });
 }
-window.loadSavedDecks = loadSavedDecks;
-
-function loadSelectedDeck() {
-  const deckId = document.getElementById("savedDecks").value;
-  if (!deckId) return;
-
-  db.collection("decks").doc(deckId).get()
-    .then(doc => {
-      if (!doc.exists) return alert("Deck not found.");
-      currentDeck = doc.data();
-      currentDeck.id = doc.id;
-      if (!currentDeck.cards) currentDeck.cards = [];
-      renderDeck();
-    });
-}
-window.loadSelectedDeck = loadSelectedDeck;
-
-function renderDeck() {
-  const list = document.getElementById("deckList");
-  list.innerHTML = "";
-
-  currentDeck.cards.forEach((card, index) => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <span class="card-name" style="cursor:pointer; text-decoration:underline;">${card.name}</span>
-      <button onclick="modifyCard(${index}, -1)">-</button>
-      <span>${card.qty}</span>
-      <button onclick="modifyCard(${index}, 1)">+</button>
-    `;
-
-    const cardNameSpan = li.querySelector(".card-name");
-
-    // Hover preview
-    cardNameSpan.addEventListener("mouseenter", () => {
-      const hover = document.getElementById("hoverPreview");
-      document.getElementById("hoverPreviewImg").src = card.image || "";
-      hover.style.display = "block";
-    });
-    cardNameSpan.addEventListener("mouseleave", () => {
-      document.getElementById("hoverPreview").style.display = "none";
-    });
-
-    // Click to Scryfall
-    cardNameSpan.addEventListener("click", () => {
-      if (card.scryfall) window.open(card.scryfall, "_blank");
-    });
-
-    list.appendChild(li);
-  });
-}
-window.renderDeck = renderDeck;
-
-function modifyCard(index, delta) {
-  currentDeck.cards[index].qty += delta;
-  if (currentDeck.cards[index].qty <= 0) {
-    currentDeck.cards.splice(index, 1);
-  }
-  renderDeck();
-}
-window.modifyCard = modifyCard;
+window.loadUserDecks = loadUserDecks;
 
 // =====================
-// Card Search
+// Enable play button if a deck is selected
 // =====================
-async function searchCards() {
-  const query = document.getElementById("cardSearchInput").value.trim();
-  const typeFilter = document.getElementById("cardTypeFilter").value;
-
-  if (!query) return;
-
-  let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`;
-  if (typeFilter) url += `+type:${encodeURIComponent(typeFilter)}`;
-
-  const res = await fetch(url);
-  const data = await res.json();
-  const resultsDiv = document.getElementById("cardSearchResults");
-  resultsDiv.innerHTML = "";
-
-  if (!data.data) return;
-
-  data.data.forEach(card => {
-    const div = document.createElement("div");
-    div.classList.add("search-card");
-    div.style.cursor = "pointer";
-    div.innerText = card.name;
-    
-    div.addEventListener("click", () => {
-      const existing = currentDeck.cards.find(c => c.name === card.name);
-      if (existing) {
-        existing.qty++;
-      } else {
-        currentDeck.cards.push({
-          name: card.name,
-          qty: 1,
-          image: card.image_uris?.normal || "",
-          scryfall: card.scryfall_uri
-        });
-      }
-      renderDeck();
-    });
-
-    resultsDiv.appendChild(div);
-  });
+function updatePlayButton() {
+  const selected = document.getElementById("mainDeckSelect")?.value;
+  const playBtn = document.getElementById("playButton");
+  if (playBtn) playBtn.disabled = !selected;
 }
-window.searchCards = searchCards;
+window.updatePlayButton = updatePlayButton;
+
+window.playDeck = goToPlayScreen;
