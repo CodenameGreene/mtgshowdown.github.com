@@ -267,4 +267,63 @@ window.modifyCard = modifyCard;
 // =====================
 async function searchCards() {
   const query = document.getElementById("cardSearchInput").value.trim();
+  const typeFilter = document.getElementById("cardTypeFilter").value;
+
+  if (!query) return;
+
+  let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`;
+  if (typeFilter) url += `+type:${encodeURIComponent(typeFilter)}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const resultsDiv = document.getElementById("cardSearchResults");
+    resultsDiv.innerHTML = "";
+
+    if (!data.data || data.data.length === 0) {
+      resultsDiv.innerText = "No cards found.";
+      return;
+    }
+
+    data.data.forEach(card => {
+      const cardDiv = document.createElement("div");
+      cardDiv.classList.add("search-card");
+      cardDiv.innerHTML = `
+        <span class="card-name" style="cursor:pointer; text-decoration:underline;">${card.name}</span>
+        <button>Add</button>
+      `;
+
+      // Hover image
+      cardDiv.querySelector(".card-name").addEventListener("mouseenter", () => {
+        const hover = document.getElementById("hoverPreview");
+        document.getElementById("hoverPreviewImg").src = card.image_uris ? card.image_uris.normal : "";
+        hover.style.display = "block";
+      });
+      cardDiv.querySelector(".card-name").addEventListener("mouseleave", () => {
+        document.getElementById("hoverPreview").style.display = "none";
+      });
+
+      // Add card to deck
+      cardDiv.querySelector("button").addEventListener("click", () => {
+        const existing = currentDeck.cards.find(c => c.name === card.name);
+        if (existing) {
+          existing.qty += 1;
+        } else {
+          currentDeck.cards.push({
+            name: card.name,
+            qty: 1,
+            image: card.image_uris ? card.image_uris.normal : "",
+            scryfall: card.scryfall_uri
+          });
+        }
+        renderDeck();
+      });
+
+      resultsDiv.appendChild(cardDiv);
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+window.searchCards = searchCards;
 
