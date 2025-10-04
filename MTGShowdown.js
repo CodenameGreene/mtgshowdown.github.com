@@ -45,14 +45,14 @@ function returnToMain() {
 }
 
 function goToPlayScreen() {
-   checkDeckLegality().then(isLegal => {
+  checkDeckLegality().then(isLegal => {
     if (isLegal) {
-     document.getElementById("mainScreen").style.display = "none";
-     document.getElementById("deckBuilder").style.display = "none";
-     document.getElementById("playScreen").style.display = "block";
+      document.getElementById("mainScreen").style.display = "none";
+      document.getElementById("deckBuilder").style.display = "none";
+      document.getElementById("playScreen").style.display = "block";
     }
+  }); // <-- close the .then() properly
 }
-
 window.showDeckBuilder = showDeckBuilder;
 window.returnToMain = returnToMain;
 window.goToPlayScreen = goToPlayScreen;
