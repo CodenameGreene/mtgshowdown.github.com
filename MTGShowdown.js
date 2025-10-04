@@ -467,27 +467,33 @@ let player = {
   turn: 1
 };
 function startGame() {
-  if (!currentDeck.cards || getDeckSize() === 0) {
-    alert("Your deck is empty!");
-    return;
-  }
+    if (!currentDeck.cards || getDeckSize() === 0) {
+        alert("Your deck is empty!");
+        return;
+    }
 
-  // Flatten and shuffle deck
-  let fullDeck = [];
-  currentDeck.cards.forEach(c => {
-    for (let i = 0; i < c.qty; i++) fullDeck.push({ ...c });
-  });
-  fullDeck.sort(() => Math.random() - 0.5);
+    // Flatten and shuffle deck
+    let fullDeck = [];
+    currentDeck.cards.forEach(c => {
+        for (let i = 0; i < c.qty; i++) {
+            // Make sure type_line exists
+            fullDeck.push({
+                ...c,
+                type_line: c.type_line || "Land" // fallback to Land if missing
+            });
+        }
+    });
+    fullDeck.sort(() => Math.random() - 0.5);
 
-  // Initialize player state
-  player.deck = fullDeck;
-  player.hand = player.deck.splice(0, 7);
-  player.battlefield = [];
-  player.manaPool = 0;
-  player.landsPlayed = 0;
-  player.turn = 1;
+    // Initialize player state
+    player.deck = fullDeck;
+    player.hand = player.deck.splice(0, 7);
+    player.battlefield = [];
+    player.manaPool = 0;
+    player.landsPlayed = 0;
+    player.turn = 1;
 
-  renderPlayScreen();
+    renderPlayScreen();
 }
 function renderPlayScreen() {
     const handDiv = document.getElementById("hand");
@@ -562,11 +568,8 @@ function isLand(card) {
 }
 
 function isPermanent(card) {
-    if (!card.type_line) return false; // If no type_line, can't play it
-
+    if (!card.type_line) return false;
     const types = card.type_line.toLowerCase();
-
-    // Permanents are: land, creature, artifact, enchantment, planeswalker
     return /land|creature|artifact|enchantment|planeswalker/.test(types);
 }
 
