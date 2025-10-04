@@ -1,8 +1,8 @@
 // =====================
 // Firebase references
 // =====================
-const auth = window.auth;
-const db = window.db;
+var auth = window.auth;
+var db = window.db;
 
 // Current deck in memory
 let currentDeck = { name: "", format: "", cards: [] };
