@@ -198,8 +198,12 @@ input, button {
 
 .hand {
   display: flex;
-  gap: 5px;
-  margin-top: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;
+  background: #2e2e2e;
+  border-radius: 10px;
+  min-height: 200px;
 }
 
 .card {
@@ -210,6 +214,18 @@ input, button {
   height: 110px;
   text-align: center;
   cursor: pointer;
+}
+.card-image {
+  width: 100px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.card-image:hover {
+  transform: scale(1.2);
+  z-index: 10;
 }
 
 .battlefield-card {
