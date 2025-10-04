@@ -282,62 +282,55 @@ function renderDeck() {
 window.renderDeck = renderDeck;
 
 async function checkDeckLegality() {
-  if (!currentDeck.format) {
-    alert("Select a format for this deck.");
-    return false;
-  }
-
-  const format = currentDeck.format;
+  const formatLabel = document.getElementById("menuButton").innerText.replace(' ▾', '');
+  const format = formatLabel;
   const deckSize = currentDeck.cards.length;
-  const illegalCards = [];
 
-  // Booster Draft does not require deck legality
-  if (format === "Booster Draft") {
-    document.getElementById("playButton").disabled = false;
-    alert("Booster Draft: Playable without deck legality check.");
-    return true;
-  }
-
-  // Format-specific deck size rules
-  if ((format === "Commander" && deckSize !== 100) ||
-      (format !== "Commander" && deckSize < 60)) {
-    let minCards = format === "Commander" ? "100" : "60+";
-    alert(`Deck must have ${minCards} cards. Currently: ${deckSize}`);
+  if (!format) {
+    alert("Select a format on the main screen.");
     document.getElementById("playButton").disabled = true;
     return false;
   }
 
-  // Check each card legality via Scryfall
+  // Booster Draft can play without a deck
+  if (format === "Booster Draft") {
+    document.getElementById("playButton").disabled = false;
+    return true;
+  }
+
+  // Commander must have 100 cards, others at least 60
+  if ((format === "Commander" && deckSize !== 100) || 
+      (format !== "Commander" && deckSize < 60)) {
+    let required = format === "Commander" ? 100 : 60;
+    alert(`Deck must have ${required} cards. Currently: ${deckSize}`);
+    document.getElementById("playButton").disabled = true;
+    return false;
+  }
+
+  const illegalCards = [];
+
   for (let card of currentDeck.cards) {
-    if (!card.scryfallId) continue; // skip if no Scryfall ID
+    if (!card.scryfallId) continue;
     try {
       const res = await fetch(`https://api.scryfall.com/cards/${card.scryfallId}`);
       const data = await res.json();
-
       if (!data.legalities || data.legalities[format.toLowerCase()] !== "legal") {
         illegalCards.push(card.name);
       }
     } catch (e) {
-      console.error(`Error checking ${card.name}:`, e);
-      illegalCards.push(card.name + " (error)");
+      illegalCards.push(`${card.name} (error checking legality)`);
     }
   }
 
-  if (illegalCards.length === 0) {
-    alert("Deck is legal for " + format + "!");
-    document.getElementById("playButton").disabled = false;
-    return true;
-  } else {
-    alert(
-      `Deck is NOT legal for ${format}.\n` +
-      (format !== "Commander" ? "Deck size: " + deckSize + "\n" : "") +
-      "Illegal cards:\n" + illegalCards.join("\n")
-    );
+  if (illegalCards.length > 0) {
+    alert(`Deck is NOT legal for ${format}.\nIllegal cards:\n${illegalCards.join("\n")}`);
     document.getElementById("playButton").disabled = true;
     return false;
   }
-}
 
+  document.getElementById("playButton").disabled = false;
+  return true;
+}
 window.checkDeckLegality = checkDeckLegality;
 
 function modifyCard(index, delta) {
