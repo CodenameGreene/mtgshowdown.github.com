@@ -486,26 +486,42 @@ function startGame() {
 function renderPlayScreen() {
   const handDiv = document.getElementById("hand");
   handDiv.innerHTML = "";
+
   playerHand.forEach((card, index) => {
-    const cardDiv = document.createElement("div");
-    cardDiv.classList.add("card");
-    cardDiv.textContent = card.name;
-    cardDiv.onclick = () => playCard(index);
-    handDiv.appendChild(cardDiv);
+    const img = document.createElement("img");
+    img.classList.add("card-image");
+    img.alt = card.name;
+    img.title = card.name;
+    img.src = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+
+    // Play card when clicked
+    img.onclick = () => playCard(index);
+
+    // Hover preview (optional)
+    img.addEventListener("mouseover", () => showCardPreview(card.name));
+    img.addEventListener("mouseout", hideCardPreview);
+
+    handDiv.appendChild(img);
   });
 
   const battlefieldDiv = document.getElementById("battlefield");
   battlefieldDiv.innerHTML = "";
+
   battlefield.forEach(card => {
-    const cardDiv = document.createElement("div");
-    cardDiv.classList.add("card", "battlefield-card");
-    cardDiv.textContent = card.name;
-    battlefieldDiv.appendChild(cardDiv);
+    const img = document.createElement("img");
+    img.classList.add("card-image", "battlefield-card");
+    img.alt = card.name;
+    img.title = card.name;
+    img.src = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+
+    battlefieldDiv.appendChild(img);
   });
 
   // Update format info
   document.getElementById("playFormat").innerText = currentDeck.format || "Unknown";
 }
+
+
 
 function playCard(index) {
   const card = playerHand.splice(index, 1)[0];
