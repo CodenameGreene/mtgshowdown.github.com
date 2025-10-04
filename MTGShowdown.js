@@ -572,6 +572,26 @@ function isPermanent(card) {
     const types = card.type_line.toLowerCase();
     return /land|creature|artifact|enchantment|planeswalker/.test(types);
 }
+async function ensureTypeLines(deck) {
+    const updatedDeck = [];
+
+    for (const card of deck) {
+        if (!card.type_line && card.scryfallId) {
+            try {
+                const res = await fetch(`https://api.scryfall.com/cards/${card.scryfallId}`);
+                const data = await res.json();
+                card.type_line = data.type_line || "Unknown";
+            } catch (e) {
+                card.type_line = "Unknown";
+            }
+        } else if (!card.type_line) {
+            card.type_line = "Unknown";
+        }
+        updatedDeck.push(card);
+    }
+
+    return updatedDeck;
+}
 
 function getCardManaCost(card) {
     if (!card.mana_cost) return 0;
