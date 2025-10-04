@@ -267,3 +267,4 @@ window.modifyCard = modifyCard;
 // =====================
 async function searchCards() {
   const query = document.getElementById("cardSearchInput").value.trim();
+
