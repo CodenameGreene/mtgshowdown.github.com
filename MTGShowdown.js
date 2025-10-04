@@ -490,59 +490,70 @@ function startGame() {
   renderPlayScreen();
 }
 function renderPlayScreen() {
-  const handDiv = document.getElementById("hand");
-  const battlefieldDiv = document.getElementById("battlefield");
-  const manaDiv = document.getElementById("manaCount");
-  const turnDiv = document.getElementById("turnCounter");
+    const handDiv = document.getElementById("hand");
+    const battlefieldDiv = document.getElementById("battlefield");
+    const manaDiv = document.getElementById("manaCount");
+    const turnDiv = document.getElementById("turnCounter");
 
-  handDiv.innerHTML = "";
-  battlefieldDiv.innerHTML = "";
+    handDiv.innerHTML = "";
+    battlefieldDiv.innerHTML = "";
 
-  // Display hand
-  player.hand.forEach((card, index) => {
-    const img = document.createElement("img");
-    img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-    img.classList.add("card");
-    img.onclick = () => playCard(index);
-    img.onmouseenter = () => showCardPreview(card.name);
-    img.onmouseleave = hideCardPreview;
-    handDiv.appendChild(img);
-  });
+    // Display hand
+    player.hand.forEach((card, index) => {
+        const img = document.createElement("img");
+        img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+        img.classList.add("card");
+        img.onclick = () => playCard(index);
+        img.onmouseenter = () => showCardPreview(card.name);
+        img.onmouseleave = hideCardPreview;
+        handDiv.appendChild(img);
+    });
 
-  // Display battlefield
-  player.battlefield.forEach((card, index) => {
-    const img = document.createElement("img");
-    img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-    img.classList.add("card", "battlefield-card");
-    if (card.isTapped) img.style.transform = "rotate(90deg)";
-    img.onclick = () => tapCard(index);
-    battlefieldDiv.appendChild(img);
-  });
+    // Display battlefield
+    player.battlefield.forEach((card, index) => {
+        const img = document.createElement("img");
+        img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+        img.classList.add("card", "battlefield-card");
 
-  // Update info
-  manaDiv.innerText = `Mana: ${player.manaPool}`;
-  turnDiv.innerText = `Turn: ${player.turn}`;
+        // Rotate and gray out tapped lands
+        if (card.isTapped) {
+            img.style.transform = "rotate(90deg)";
+            img.style.filter = "grayscale(70%)";
+        } else {
+            img.style.transform = "rotate(0deg)";
+            img.style.filter = "none";
+        }
 
-  // Add End Turn button
-  const endTurnContainer = document.getElementById("endTurnContainer");
-  if (endTurnContainer) {
+        // Tap land if clicked
+        img.onclick = () => {
+            if (isLand(card)) tapCard(index);
+        };
+
+        // Hover preview
+        img.onmouseenter = () => showCardPreview(card.name);
+        img.onmouseleave = hideCardPreview;
+
+        battlefieldDiv.appendChild(img);
+    });
+
+    // Update info
+    manaDiv.innerText = `Mana: ${player.manaPool}`;
+    turnDiv.innerText = `Turn: ${player.turn}`;
+
+    // Add End Turn button
+    let endTurnContainer = document.getElementById("endTurnContainer");
+    if (!endTurnContainer) {
+        endTurnContainer = document.createElement("div");
+        endTurnContainer.id = "endTurnContainer";
+        document.getElementById("playScreen").appendChild(endTurnContainer);
+    }
     endTurnContainer.innerHTML = "";
-  } else {
-    const container = document.createElement("div");
-    container.id = "endTurnContainer";
-    document.getElementById("playScreen").appendChild(container);
-  }
-
-  const endTurnBtn = document.createElement("button");
-  endTurnBtn.innerText = "End Turn";
-  endTurnBtn.classList.add("end-turn-btn");
-  endTurnBtn.onclick = endTurn;
-  document.getElementById("endTurnContainer").appendChild(endTurnBtn);
+    const endTurnBtn = document.createElement("button");
+    endTurnBtn.innerText = "End Turn";
+    endTurnBtn.classList.add("end-turn-btn");
+    endTurnBtn.onclick = endTurn;
+    endTurnContainer.appendChild(endTurnBtn);
 }
-
-// =====================
-// Helper Functions
-// =====================
 // =====================
 // Helper Functions
 // =====================
