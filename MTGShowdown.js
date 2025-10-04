@@ -442,7 +442,9 @@ async function searchCards() {
             name: card.name,
             qty: 1,
             image: card.image_uris ? card.image_uris.normal : "",
-            scryfall: card.scryfall_uri
+            scryfall: card.scryfall_uri,
+            type_line: card.type_line
+            
           });
         }
         renderDeck();
@@ -577,10 +579,7 @@ function tapCard(index) {
 }
 
 function isLand(card) {
-  return (
-    (card.type_line && card.type_line.includes("Land")) ||
-    card.name.toLowerCase().includes("land")
-  );
+    return card.type_line?.toLowerCase().includes("land");
 }
 
 function endTurn() {
