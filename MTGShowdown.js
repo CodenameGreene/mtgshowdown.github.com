@@ -558,12 +558,16 @@ function renderPlayScreen() {
 // Helper Functions
 // =====================
 function isLand(card) {
-    // Detect any type of land from Scryfall type_line
     return card.type_line?.toLowerCase().includes("land");
 }
 
+function isPermanent(card) {
+    const types = ["creature", "artifact", "enchantment", "planeswalker", "land"];
+    const line = card.type_line?.toLowerCase() || "";
+    return types.some(t => line.includes(t));
+}
+
 function getCardManaCost(card) {
-    // Simple parser: each mana symbol counts as 1
     if (!card.mana_cost) return 0;
     const matches = card.mana_cost.match(/\{[^}]+\}/g);
     return matches ? matches.length : 0;
@@ -572,50 +576,47 @@ function getCardManaCost(card) {
 // =====================
 // Play a card from hand
 // =====================
-function isPermanent(card) {
-    const types = ["creature", "artifact", "enchantment", "planeswalker", "land"];
-    const line = card.type_line?.toLowerCase() || "";
-    return types.some(t => line.includes(t));
-}
 function playCard(index) {
     const card = player.hand[index];
 
     // Lands
-   if (isLand(card)) {
-    if (player.landsPlayed >= 1) { alert("Already played a land!"); return; }
+    if (isLand(card)) {
+        if (player.landsPlayed >= 1) {
+            alert("You already played a land this turn!");
+            return;
+        }
+        player.hand.splice(index, 1);
+        player.battlefield.push({ ...card, isTapped: false });
+        player.landsPlayed++;
+        renderPlayScreen();
+        return;
+    }
+
+    // Non-land permanents
+    if (!isPermanent(card)) {
+        alert("This type of card cannot be played to the battlefield!");
+        return;
+    }
+
+    const cost = getCardManaCost(card);
+    const untappedLands = player.battlefield.filter(c => isLand(c) && !c.isTapped);
+
+    if (untappedLands.length < cost) {
+        alert("Not enough mana! Tap more lands first.");
+        return;
+    }
+
+    // Tap lands to pay mana
+    for (let i = 0; i < cost; i++) untappedLands[i].isTapped = true;
+
+    // Move card to battlefield
     player.hand.splice(index, 1);
     player.battlefield.push({ ...card, isTapped: false });
-    player.landsPlayed++;
     renderPlayScreen();
-    return;
-}
-
-// Non-lands
-const cost = getCardManaCost(card);
-const untappedLands = player.battlefield.filter(c => isLand(c) && !c.isTapped);
-
-if (untappedLands.length < cost) {
-    alert("Not enough mana! Tap more lands first.");
-    return;
-}
-
-// Only allow permanents to go to battlefield
-if (!isPermanent(card)) {
-    alert("This type of card cannot be played to the battlefield!");
-    return;
-}
-
-// Tap lands to pay
-for (let i = 0; i < cost; i++) untappedLands[i].isTapped = true;
-
-// Move card to battlefield
-player.hand.splice(index, 1);
-player.battlefield.push({ ...card, isTapped: false });
-renderPlayScreen();
 }
 
 // =====================
-// Tap a land manually to add "mana"
+// Tap a land manually
 // =====================
 function tapCard(index) {
     const card = player.battlefield[index];
@@ -624,6 +625,77 @@ function tapCard(index) {
 
     card.isTapped = true;
     renderPlayScreen();
+}
+
+// =====================
+// Render play screen
+// =====================
+function renderPlayScreen() {
+    const handDiv = document.getElementById("hand");
+    const battlefieldDiv = document.getElementById("battlefield");
+    const manaDiv = document.getElementById("manaCount");
+    const turnDiv = document.getElementById("turnCounter");
+
+    handDiv.innerHTML = "";
+    battlefieldDiv.innerHTML = "";
+
+    // Display hand
+    player.hand.forEach((card, index) => {
+        const img = document.createElement("img");
+        img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+        img.classList.add("card");
+        img.onclick = () => playCard(index);
+        img.onmouseenter = () => showCardPreview(card.name);
+        img.onmouseleave = hideCardPreview;
+        handDiv.appendChild(img);
+    });
+
+    // Display battlefield
+    player.battlefield.forEach((card, index) => {
+        const img = document.createElement("img");
+        img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+        img.classList.add("card", "battlefield-card");
+
+        // Gray out tapped lands
+        if (card.isTapped) {
+            img.style.transform = "rotate(90deg)";
+            img.style.filter = "grayscale(100%)";
+        } else {
+            img.style.transform = "rotate(0deg)";
+            img.style.filter = "none";
+        }
+
+        // Click to tap lands
+        img.onclick = () => {
+            if (isLand(card)) tapCard(index);
+        };
+
+        // Hover preview for battlefield too
+        img.onmouseenter = () => showCardPreview(card.name);
+        img.onmouseleave = hideCardPreview;
+
+        battlefieldDiv.appendChild(img);
+    });
+
+    // Update info
+    manaDiv.innerText = `Mana: ${player.battlefield.filter(c => isLand(c) && !c.isTapped).length}`;
+    turnDiv.innerText = `Turn: ${player.turn}`;
+
+    // End Turn button
+    const endTurnContainer = document.getElementById("endTurnContainer");
+    if (endTurnContainer) {
+        endTurnContainer.innerHTML = "";
+    } else {
+        const container = document.createElement("div");
+        container.id = "endTurnContainer";
+        document.getElementById("playScreen").appendChild(container);
+    }
+
+    const endTurnBtn = document.createElement("button");
+    endTurnBtn.innerText = "End Turn";
+    endTurnBtn.classList.add("end-turn-btn");
+    endTurnBtn.onclick = endTurn;
+    document.getElementById("endTurnContainer").appendChild(endTurnBtn);
 }
 
 // =====================
@@ -643,15 +715,17 @@ function endTurn() {
     renderPlayScreen();
 }
 
-
+// =====================
+// Preview helpers
+// =====================
 function showCardPreview(cardName) {
-  const previewDiv = document.getElementById("hoverPreview");
-  const previewImg = document.getElementById("hoverPreviewImg");
-  previewImg.src = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}&format=image`;
-  previewDiv.style.display = "block";
+    const previewDiv = document.getElementById("hoverPreview");
+    const previewImg = document.getElementById("hoverPreviewImg");
+    previewImg.src = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}&format=image`;
+    previewDiv.style.display = "block";
 }
 
 function hideCardPreview() {
-  const previewDiv = document.getElementById("hoverPreview");
-  previewDiv.style.display = "none";
+    const previewDiv = document.getElementById("hoverPreview");
+    previewDiv.style.display = "none";
 }
