@@ -206,6 +206,7 @@ function saveDeck() {
 window.saveDeck = saveDeck;
 
 
+
 function loadSavedDecks() {
   const user = auth.currentUser;
   if (!user) return;
@@ -341,6 +342,30 @@ function modifyCard(index, delta) {
   renderDeck();
 }
 window.modifyCard = modifyCard;
+
+function mainScreenDeckChanged() {
+  const deckId = document.getElementById("mainDeckSelect").value;
+  if (!deckId) {
+    currentDeck = { name: "", format: "", cards: [] }; // empty
+    updatePlayButton();
+    return;
+  }
+
+  db.collection("decks").doc(deckId).get().then(doc => {
+    if (!doc.exists) return alert("Deck not found.");
+
+    currentDeck = doc.data();
+    currentDeck.id = doc.id;
+    if (!currentDeck.cards) currentDeck.cards = [];
+
+    // Optionally update deck builder inputs too
+    document.getElementById("deckNameInput").value = currentDeck.name;
+    document.getElementById("deckFormatSelect").value = currentDeck.format;
+
+    renderDeck();
+    updatePlayButton();
+  });
+}
 
 // =====================
 // Card Search
