@@ -574,32 +574,37 @@ function parseManaCost(manaString) {
 function playCard(index) {
     const card = player.hand[index];
 
-    if (!isPlayable(card)) {
-        if (isLand(card)) {
-            alert("You already played a land this turn!");
-        } else {
-            alert("Not enough mana to play this card!");
-        }
-        return;
-    }
-
-    // Lands
     if (isLand(card)) {
+        if (player.landsPlayed >= 1) {
+            alert("You already played a land this turn!");
+            return;
+        }
         player.hand.splice(index, 1);
         player.battlefield.push({ ...card, isTapped: false, type: "land" });
         player.landsPlayed++;
-    } 
-    // Non-lands
-    else {
+    } else {
         const cost = getCardManaCost(card);
-        player.manaPool -= cost;
+
+        // Optional: auto-tap untapped lands to pay
+        let availableLands = player.battlefield.filter(c => isLand(c) && !c.isTapped);
+        let manaGenerated = availableLands.length;
+
+        if (manaGenerated < cost) {
+            alert("Not enough mana! Tap more lands first.");
+            return;
+        }
+
+        // Tap lands automatically to pay for card
+        for (let i = 0; i < cost; i++) {
+            availableLands[i].isTapped = true;
+        }
+
         player.hand.splice(index, 1);
         player.battlefield.push({ ...card, isTapped: false });
     }
 
     renderPlayScreen();
 }
-
 // =====================
 // Tap a land to add mana
 // =====================
