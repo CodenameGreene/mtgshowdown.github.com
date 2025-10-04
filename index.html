@@ -56,6 +56,19 @@
       <button class="small-button" onclick="showDeckBuilder()">Deck Builder</button>
       <button class="small-button" id="playButton" onclick="playDeck()" disabled>Play</button>
     </div>
+
+    <!-- Login / Signup -->
+    <div class="container">
+      <h2>Login / Sign Up</h2>
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Password" />
+      <button class="small-button" onclick="login()">Login</button>
+      <button class="small-button" onclick="signup()">Sign Up</button>
+      <p id="status"></p>
+    </div>
+
+    <!-- User Info -->
+    <div id="userInfo"></div>
   </div>
 
   <!-- Deck Builder -->
@@ -130,7 +143,7 @@
     }
   </script>
 
-  <!-- App Logic -->
+  <!-- Combined App Logic -->
   <script src="MTGShowdown.js" defer></script>
 </body>
 </html>
