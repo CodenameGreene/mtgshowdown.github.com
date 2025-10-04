@@ -48,12 +48,19 @@ function returnToMain() {
 window.returnToMain = returnToMain;
 
 function goToPlayScreen() {
-  const main = document.getElementById("mainScreen");
-  const deck = document.getElementById("deckBuilder");
-  const play = document.getElementById("playScreen");
-  if (main) main.style.display = "none";
-  if (deck) deck.style.display = "none";
-  if (play) play.style.display = "block";
+  checkDeckLegality().then(isLegal => {
+    if (isLegal) {
+      const main = document.getElementById("mainScreen");
+      const deck = document.getElementById("deckBuilder");
+       const play = document.getElementById("playScreen");
+      document.getElementById("mainScreen").style.display = "none";
+      document.getElementById("deckBuilder").style.display = "none";
+      document.getElementById("playScreen").style.display = "block";
+    } else {
+      // Optional: focus deck builder so user can fix it
+      showDeckBuilder();
+    }
+  });
 }
 window.goToPlayScreen = goToPlayScreen;
 
