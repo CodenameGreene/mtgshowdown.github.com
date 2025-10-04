@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MTG Showdown</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" href="data:," />
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase Init -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCHqxtwOQkCYtuMJKtvB_EbuTUC05084Ts",
+      authDomain: "mtgusers.firebaseapp.com",
+      projectId: "mtgusers",
+      storageBucket: "mtgusers.firebasestorage.app",
+      messagingSenderId: "254815117873",
+      appId: "1:254815117873:web:b31b12f841594e33feeb10",
+      measurementId: "G-YWCWF0P3XR"
+    };
+    firebase.initializeApp(firebaseConfig);
+    window.auth = firebase.auth();
+    window.db = firebase.firestore();
+  </script>
+</head>
+<body>
+  <!-- Main Screen -->
+  <div id="mainScreen">
+    <h1>MTG Showdown</h1>
+
+    <!-- Format dropdown -->
+    <div class="dropdown">
+      <button id="menuButton" class="small-button" onclick="toggleDropdown()">Select Format ▾</button>
+      <div id="formatDropdown" class="dropdown-content">
+        <a href="#" onclick="changeMenuLabel('Standard')">Standard</a>
+        <a href="#" onclick="changeMenuLabel('Modern')">Modern</a>
+        <a href="#" onclick="changeMenuLabel('Commander')">Commander</a>
+        <a href="#" onclick="changeMenuLabel('Booster Draft')">Booster Draft</a>
+        <a href="#" onclick="changeMenuLabel('Pioneer')">Pioneer</a>
+        <a href="#" onclick="changeMenuLabel('Pauper')">Pauper</a>
+      </div>
+    </div>
+
+    <!-- Deck select -->
+    <select id="mainDeckSelect" onchange="updatePlayButton()">
+      <option value="">-- Select Deck --</option>
+    </select>
+
+    <!-- Buttons -->
+    <div>
+      <button class="small-button" onclick="showDeckBuilder()">Deck Builder</button>
+      <button class="small-button" id="playButton" onclick="playDeck()" disabled>Play</button>
+    </div>
+  </div>
+
+  <!-- Deck Builder -->
+  <div id="deckBuilder" style="display:none;">
+    <h2>Deck Builder</h2>
+    <input id="deckNameInput" type="text" placeholder="Deck Name"/>
+    <select id="deckFormatSelect">
+      <option value="">-- Select Format --</option>
+      <option value="Standard">Standard</option>
+      <option value="Modern">Modern</option>
+      <option value="Commander">Commander</option>
+      <option value="Booster Draft">Booster Draft</option>
+      <option value="Pioneer">Pioneer</option>
+      <option value="Pauper">Pauper</option>
+    </select>
+    <button class="small-button" onclick="saveDeck()">Save Deck</button>
+    <button class="small-button" onclick="goBack()">Back</button>
+
+    <h3>Search Cards</h3>
+    <input id="cardSearchInput" type="text" placeholder="Search cards" oninput="searchCards()"/>
+    <select id="cardTypeFilter" onchange="searchCards()">
+      <option value="">All Types</option>
+      <option value="creature">Creatures</option>
+      <option value="artifact">Artifacts</option>
+      <option value="land">Lands</option>
+      <option value="instant">Instants</option>
+      <option value="sorcery">Sorceries</option>
+      <option value="enchantment">Enchantments</option>
+      <option value="planeswalker">Planeswalkers</option>
+    </select>
+
+    <div id="cardSearchResults"></div>
+
+    <h3>Your Deck</h3>
+    <ul id="deckList"></ul>
+
+    <h3>Saved Decks</h3>
+    <select id="savedDecks" onchange="loadSelectedDeck()">
+      <option value="">-- Select Deck --</option>
+    </select>
+  </div>
+
+  <!-- Play Screen -->
+  <div id="playScreen" style="display:none;">
+    <h2>Game Mode</h2>
+    <button class="small-button" onclick="returnToMain()">Return</button>
+  </div>
+
+  <!-- Hover Preview -->
+  <div id="hoverPreview" style="
+      display:none;
+      position:fixed;
+      right:20px;
+      top:20px;
+      width:300px;
+      border:2px solid black;
+      background:#fff;
+      z-index:2000;">
+    <img id="hoverPreviewImg" src="" alt="Card Preview" style="width:100%; display:block;"/>
+  </div>
+
+  <!-- Dropdown Script -->
+  <script>
+    function toggleDropdown() {
+      document.getElementById("formatDropdown").classList.toggle("show");
+    }
+    window.onclick = function(event) {
+      if (!event.target.matches('#menuButton')) {
+        const dropdown = document.getElementById("formatDropdown");
+        if (dropdown.classList.contains("show")) dropdown.classList.remove("show");
+      }
+    }
+  </script>
+
+  <!-- App Logic -->
+  <script src="mainScreen.js" defer></script>
+  <script src="deckBuilder.js" defer></script>
+</body>
+</html>
