@@ -540,64 +540,97 @@ function renderPlayScreen() {
   document.getElementById("endTurnContainer").appendChild(endTurnBtn);
 }
 
-function playCard(index) {
-  const card = player.hand[index];
-
-  // Check if land
-  if (isLand(card)) {
-    if (player.landsPlayed >= 1) {
-      alert("You already played a land this turn!");
-      return;
-    }
-    player.hand.splice(index, 1);
-    player.battlefield.push({ ...card, isTapped: false, type: "land" });
-    player.landsPlayed++;
-  } else {
-    // Check if enough mana
-    const manaCost = 1; // placeholder — could later be parsed from card
-    if (player.manaPool < manaCost) {
-      alert("Not enough mana to play this card!");
-      return;
-    }
-    player.manaPool -= manaCost;
-    player.hand.splice(index, 1);
-    player.battlefield.push({ ...card, isTapped: false });
-  }
-
-  renderPlayScreen();
-}
-
-function tapCard(index) {
-  const card = player.battlefield[index];
-  if (!card || card.isTapped) return;
-
-  if (isLand(card)) {
-    player.manaPool++;
-    card.isTapped = true;
-  }
-  renderPlayScreen();
-}
-
+// =====================
+// Helper Functions
+// =====================
 function isLand(card) {
+    // Uses Scryfall type_line to detect any type of land
     return card.type_line?.toLowerCase().includes("land");
 }
 
-function endTurn() {
-  // Untap all battlefield cards
-  player.battlefield.forEach(card => (card.isTapped = false));
-
-  // Draw a card if deck not empty
-  if (player.deck.length > 0) {
-    player.hand.push(player.deck.shift());
-  }
-
-  // Reset per-turn limits
-  player.landsPlayed = 0;
-  player.turn++;
-  player.manaPool = 0; // reset mana each turn
-
-  renderPlayScreen();
+function isPlayable(card) {
+    // Lands are always playable once per turn, others require mana
+    if (isLand(card)) return player.landsPlayed < 1;
+    return player.manaPool >= getCardManaCost(card);
 }
+
+function getCardManaCost(card) {
+    // For now, assume all non-land cards cost 1 mana
+    // Later you can parse card.mana_cost if you store it from Scryfall
+    return card.mana_cost ? parseManaCost(card.mana_cost) : 1;
+}
+
+function parseManaCost(manaString) {
+    // Very simple parser: count all mana symbols as 1 each
+    // e.g., "{2}{G}" => 3
+    if (!manaString) return 0;
+    const matches = manaString.match(/\{[^}]+\}/g);
+    return matches ? matches.length : 0;
+}
+
+// =====================
+// Play a card from hand
+// =====================
+function playCard(index) {
+    const card = player.hand[index];
+
+    if (!isPlayable(card)) {
+        if (isLand(card)) {
+            alert("You already played a land this turn!");
+        } else {
+            alert("Not enough mana to play this card!");
+        }
+        return;
+    }
+
+    // Lands
+    if (isLand(card)) {
+        player.hand.splice(index, 1);
+        player.battlefield.push({ ...card, isTapped: false, type: "land" });
+        player.landsPlayed++;
+    } 
+    // Non-lands
+    else {
+        const cost = getCardManaCost(card);
+        player.manaPool -= cost;
+        player.hand.splice(index, 1);
+        player.battlefield.push({ ...card, isTapped: false });
+    }
+
+    renderPlayScreen();
+}
+
+// =====================
+// Tap a land to add mana
+// =====================
+function tapCard(index) {
+    const card = player.battlefield[index];
+    if (card.isTapped) return;
+
+    if (isLand(card)) {
+        player.manaPool++;
+        card.isTapped = true;
+        renderPlayScreen();
+    }
+}
+
+// =====================
+// End turn
+// =====================
+function endTurn() {
+    // Untap all battlefield cards
+    player.battlefield.forEach(card => card.isTapped = false);
+
+    // Draw a card
+    if (player.deck.length > 0) player.hand.push(player.deck.shift());
+
+    // Reset per-turn limits
+    player.landsPlayed = 0;
+    player.turn++;
+
+    renderPlayScreen();
+}
+
 
 function showCardPreview(cardName) {
   const previewDiv = document.getElementById("hoverPreview");
