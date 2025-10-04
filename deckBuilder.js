@@ -1,163 +1,53 @@
 // =====================
-// mainScreen.js
+// deckBuilder.js
 // =====================
 
-// Use globally initialized Firebase
+// Use global Firebase instances
 var auth = window.auth;
 var db = window.db;
 
-// =====================
-// Format Dropdown
-// =====================
-function changeMenuLabel(label) {
-  const btn = document.getElementById("menuButton");
-  if (btn) btn.innerText = label + " ▾";
-}
-window.changeMenuLabel = changeMenuLabel;
+// Current deck
+var currentDeck = { name: "", format: "", cards: [] };
 
-function toggleDropdown() {
-  const dropdown = document.getElementById("formatDropdown");
-  if (dropdown) dropdown.classList.toggle("show");
-}
-window.toggleDropdown = toggleDropdown;
-
-window.onclick = function(event) {
-  if (!event.target.matches('#menuButton')) {
-    const dropdown = document.getElementById("formatDropdown");
-    if (dropdown && dropdown.classList.contains("show")) dropdown.classList.remove("show");
+// =====================
+// Save deck
+// =====================
+function saveDeck() {
+  const name = document.getElementById("deckNameInput")?.value.trim();
+  const format = document.getElementById("deckFormatSelect")?.value;
+  if (!name || !format) {
+    alert("Enter deck name and select format.");
+    return;
   }
-}
 
-// =====================
-// Screen Navigation
-// =====================
-function showDeckBuilder() {
-  document.getElementById("mainScreen").style.display = "none";
-  document.getElementById("deckBuilder").style.display = "block";
-}
-window.showDeckBuilder = showDeckBuilder;
-
-function returnToMain() {
-  const main = document.getElementById("mainScreen");
-  const deck = document.getElementById("deckBuilder");
-  const play = document.getElementById("playScreen");
-  if (main) main.style.display = "block";
-  if (deck) deck.style.display = "none";
-  if (play) play.style.display = "none";
-}
-window.returnToMain = returnToMain;
-
-function goToPlayScreen() {
-  const main = document.getElementById("mainScreen");
-  const deck = document.getElementById("deckBuilder");
-  const play = document.getElementById("playScreen");
-  if (main) main.style.display = "none";
-  if (deck) deck.style.display = "none";
-  if (play) play.style.display = "block";
-}
-window.goToPlayScreen = goToPlayScreen;
-
-// =====================
-// Auth
-// =====================
-function login() {
-  const email = document.getElementById("email")?.value;
-  const password = document.getElementById("password")?.value;
-  if (!email || !password) return;
-
-  auth.signInWithEmailAndPassword(email, password)
-    .then(() => {
-      const status = document.getElementById("status");
-      if (status) {
-        status.style.color = "green";
-        status.innerText = "Login successful!";
-      }
-      loadUserDecks();
-      loadSavedDecks();
-    })
-    .catch(error => {
-      const status = document.getElementById("status");
-      if (status) {
-        status.style.color = "red";
-        status.innerText = error.message;
-      }
-    });
-}
-window.login = login;
-
-function signup() {
-  const email = document.getElementById("email")?.value;
-  const password = document.getElementById("password")?.value;
-  if (!email || !password) return;
-
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(() => {
-      const status = document.getElementById("status");
-      if (status) {
-        status.style.color = "green";
-        status.innerText = "Account created!";
-      }
-      loadUserDecks();
-      loadSavedDecks();
-    })
-    .catch(error => {
-      const status = document.getElementById("status");
-      if (status) {
-        status.style.color = "red";
-        status.innerText = error.message;
-      }
-    });
-}
-window.signup = signup;
-
-function logout() {
-  auth.signOut()
-    .then(() => {
-      const status = document.getElementById("status");
-      if (status) status.innerText = "Logged out.";
-      const deckSelect = document.getElementById("mainDeckSelect");
-      if (deckSelect) deckSelect.innerHTML = `<option value="">-- Select Deck --</option>`;
-    })
-    .catch(error => {
-      const status = document.getElementById("status");
-      if (status) status.innerText = error.message;
-    });
-}
-window.logout = logout;
-
-// =====================
-// Auth State Listener
-// =====================
-auth.onAuthStateChanged(user => {
-  const loginContainer = document.querySelector(".container");
-  const userInfoDiv = document.getElementById("userInfo");
-  
-  if (user) {
-    if (loginContainer) loginContainer.style.display = "none";
-    if (userInfoDiv) {
-      userInfoDiv.innerHTML = `
-        <p>Logged in as <strong>${user.email}</strong></p>
-        <button class="small-button" onclick="logout()">Logout</button>
-      `;
-    }
-    loadUserDecks();
-    loadSavedDecks();
-  } else {
-    if (loginContainer) loginContainer.style.display = "block";
-    if (userInfoDiv) userInfoDiv.innerHTML = "";
-  }
-});
-
-// =====================
-// Load user decks for main screen dropdown
-// =====================
-function loadUserDecks() {
-  const deckSelect = document.getElementById("mainDeckSelect");
-  if (!deckSelect) return;
-  deckSelect.innerHTML = `<option value="">-- Select Deck --</option>`;
+  currentDeck.name = name;
+  currentDeck.format = format;
 
   const user = auth.currentUser;
+  if (!user) return alert("Not logged in.");
+
+  db.collection("decks").add({
+    owner: user.uid,
+    name: name,
+    format: format,
+    cards: currentDeck.cards
+  }).then(() => {
+    alert("Deck saved!");
+    loadSavedDecks();
+  });
+}
+window.saveDeck = saveDeck;
+
+// =====================
+// Load saved decks
+// =====================
+function loadSavedDecks() {
+  const user = auth.currentUser;
   if (!user) return;
+
+  const select = document.getElementById("savedDecks");
+  if (!select) return;
+  select.innerHTML = `<option value="">-- Select Deck --</option>`;
 
   db.collection("decks").where("owner", "==", user.uid).get()
     .then(snapshot => {
@@ -165,21 +55,49 @@ function loadUserDecks() {
         const data = doc.data();
         const option = document.createElement("option");
         option.value = doc.id;
-        option.textContent = data.name + " (" + data.format + ")";
-        deckSelect.appendChild(option);
+        option.textContent = data.name;
+        select.appendChild(option);
       });
     });
 }
-window.loadUserDecks = loadUserDecks;
+window.loadSavedDecks = loadSavedDecks;
 
 // =====================
-// Enable play button if a deck is selected
+// Load a selected deck
 // =====================
-function updatePlayButton() {
-  const selected = document.getElementById("mainDeckSelect")?.value;
-  const playBtn = document.getElementById("playButton");
-  if (playBtn) playBtn.disabled = !selected;
+function loadSelectedDeck() {
+  const deckId = document.getElementById("savedDecks")?.value;
+  if (!deckId) return;
+
+  db.collection("decks").doc(deckId).get()
+    .then(doc => {
+      if (!doc.exists) return alert("Deck not found.");
+      currentDeck = doc.data();
+      currentDeck.id = doc.id;
+      if (!currentDeck.cards) currentDeck.cards = [];
+      renderDeck();
+    });
 }
-window.updatePlayButton = updatePlayButton;
+window.loadSelectedDeck = loadSelectedDeck;
 
-window.playDeck = goToPlayScreen;
+// =====================
+// Render deck list
+// =====================
+function renderDeck() {
+  const list = document.getElementById("deckList");
+  if (!list) return;
+  list.innerHTML = "";
+
+  currentDeck.cards.forEach((card, index) => {
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+      <span class="card-name" style="cursor:pointer; text-decoration:underline;">${card.name}</span>
+      <button onclick="modifyCard(${index}, -1)">-</button>
+      <span>${card.qty}</span>
+      <button onclick="modifyCard(${index}, 1)">+</button>
+    `;
+
+    // Hover preview
+    const cardNameSpan = li.querySelector
+
