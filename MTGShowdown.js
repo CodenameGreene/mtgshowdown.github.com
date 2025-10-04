@@ -436,7 +436,7 @@ let playerHand = [];
 let battlefield = [];
 
 function startGame() {
-  if (!currentDeck.cards || currentDeck.cards.length === 0) {
+  if (!currentDeck.cards || getDeckSize() === 0) {
     alert("Your deck is empty!");
     return;
   }
