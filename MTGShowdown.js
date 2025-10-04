@@ -490,11 +490,13 @@ function startGame() {
 function renderPlayScreen() {
   const handDiv = document.getElementById("hand");
   const battlefieldDiv = document.getElementById("battlefield");
+  const manaDiv = document.getElementById("manaCount");
+  const turnDiv = document.getElementById("turnCounter");
 
   handDiv.innerHTML = "";
   battlefieldDiv.innerHTML = "";
 
-  // Show hand (with click to play)
+  // Display hand
   player.hand.forEach((card, index) => {
     const img = document.createElement("img");
     img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
@@ -505,26 +507,41 @@ function renderPlayScreen() {
     handDiv.appendChild(img);
   });
 
-  // Show battlefield
+  // Display battlefield
   player.battlefield.forEach((card, index) => {
     const img = document.createElement("img");
     img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
     img.classList.add("card", "battlefield-card");
-
-    if (card.isTapped) img.style.filter = "grayscale(80%) rotate(90deg)";
+    if (card.isTapped) img.style.transform = "rotate(90deg)";
     img.onclick = () => tapCard(index);
-
     battlefieldDiv.appendChild(img);
   });
 
-  document.getElementById("playFormat").innerText = currentDeck.format || "Unknown";
-  document.getElementById("manaCount").innerText = `Mana: ${player.manaPool}`;
-  document.getElementById("turnCounter").innerText = `Turn: ${player.turn}`;
+  // Update info
+  manaDiv.innerText = `Mana: ${player.manaPool}`;
+  turnDiv.innerText = `Turn: ${player.turn}`;
+
+  // Add End Turn button
+  const endTurnContainer = document.getElementById("endTurnContainer");
+  if (endTurnContainer) {
+    endTurnContainer.innerHTML = "";
+  } else {
+    const container = document.createElement("div");
+    container.id = "endTurnContainer";
+    document.getElementById("playScreen").appendChild(container);
+  }
+
+  const endTurnBtn = document.createElement("button");
+  endTurnBtn.innerText = "End Turn";
+  endTurnBtn.classList.add("end-turn-btn");
+  endTurnBtn.onclick = endTurn;
+  document.getElementById("endTurnContainer").appendChild(endTurnBtn);
 }
+
 function playCard(index) {
   const card = player.hand[index];
 
-  // Lands: free, 1 per turn
+  // Check if land
   if (isLand(card)) {
     if (player.landsPlayed >= 1) {
       alert("You already played a land this turn!");
@@ -533,14 +550,14 @@ function playCard(index) {
     player.hand.splice(index, 1);
     player.battlefield.push({ ...card, isTapped: false, type: "land" });
     player.landsPlayed++;
-  } 
-  // Other cards: require mana
-  else {
-    if (player.manaPool < 1) { // you can later replace with card.cost
+  } else {
+    // Check if enough mana
+    const manaCost = 1; // placeholder — could later be parsed from card
+    if (player.manaPool < manaCost) {
       alert("Not enough mana to play this card!");
       return;
     }
-    player.manaPool--; // spend mana
+    player.manaPool -= manaCost;
     player.hand.splice(index, 1);
     player.battlefield.push({ ...card, isTapped: false });
   }
@@ -550,62 +567,27 @@ function playCard(index) {
 
 function tapCard(index) {
   const card = player.battlefield[index];
-  if (card.isTapped) return;
+  if (!card || card.isTapped) return;
 
   if (isLand(card)) {
     player.manaPool++;
     card.isTapped = true;
-    renderPlayScreen();
   }
+  renderPlayScreen();
 }
 
 function isLand(card) {
-  return card.type_line && card.type_line.includes("Land") || card.name.toLowerCase().includes("land");
-}
-  function showCardPreview(cardName) {
-  const previewDiv = document.getElementById("hoverPreview");
-  const previewImg = document.getElementById("hoverPreviewImg");
-  
-  previewImg.src = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}&format=image`;
-  previewDiv.style.display = "block";
-}
-
-function hideCardPreview() {
-  const previewDiv = document.getElementById("hoverPreview");
-  previewDiv.style.display = "none";
-}
-
-
-  const battlefieldDiv = document.getElementById("battlefield");
-  battlefieldDiv.innerHTML = "";
-
-  battlefield.forEach(card => {
-    const img = document.createElement("img");
-    img.classList.add("card-image", "battlefield-card");
-    img.alt = card.name;
-    img.title = card.name;
-    img.src = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-
-    battlefieldDiv.appendChild(img);
-  });
-
-  // Update format info
-  document.getElementById("playFormat").innerText = currentDeck.format || "Unknown";
-}
-
-
-
-function playCard(index) {
-  const card = playerHand.splice(index, 1)[0];
-  battlefield.push(card);
-  renderPlayScreen();
+  return (
+    (card.type_line && card.type_line.includes("Land")) ||
+    card.name.toLowerCase().includes("land")
+  );
 }
 
 function endTurn() {
   // Untap all battlefield cards
-  player.battlefield.forEach(card => card.isTapped = false);
+  player.battlefield.forEach(card => (card.isTapped = false));
 
-  // Draw a card
+  // Draw a card if deck not empty
   if (player.deck.length > 0) {
     player.hand.push(player.deck.shift());
   }
@@ -613,6 +595,19 @@ function endTurn() {
   // Reset per-turn limits
   player.landsPlayed = 0;
   player.turn++;
+  player.manaPool = 0; // reset mana each turn
 
   renderPlayScreen();
+}
+
+function showCardPreview(cardName) {
+  const previewDiv = document.getElementById("hoverPreview");
+  const previewImg = document.getElementById("hoverPreviewImg");
+  previewImg.src = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}&format=image`;
+  previewDiv.style.display = "block";
+}
+
+function hideCardPreview() {
+  const previewDiv = document.getElementById("hoverPreview");
+  previewDiv.style.display = "none";
 }
