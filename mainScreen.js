@@ -1,6 +1,3 @@
-// =====================
-// mainScreen.js
-// =====================
 const auth = window.auth;
 const db = window.db;
 
@@ -99,14 +96,14 @@ auth.onAuthStateChanged(user => {
   const userInfoDiv = document.getElementById("userInfo");
 
   if (user) {
-    loginContainer.style.display = "none";
+    if (loginContainer) loginContainer.style.display = "none";
     userInfoDiv.innerHTML = `
       <p>Logged in as <strong>${user.email}</strong></p>
       <button class="small-button" onclick="logout()">Logout</button>
     `;
     loadUserDecks();
   } else {
-    loginContainer.style.display = "block";
+    if (loginContainer) loginContainer.style.display = "block";
     userInfoDiv.innerHTML = "";
   }
 });
@@ -136,17 +133,4 @@ function loadUserDecks() {
       });
     });
 }
-window.loadUserDecks = loadUserDecks;
-
-// =====================
-// Enable play button if a deck is selected
-// =====================
-function updatePlayButton() {
-  const selected = document.getElementById("mainDeckSelect").value;
-  document.getElementById("playButton").disabled = !selected;
-}
-window.updatePlayButton = updatePlayButton;
-
-window.playDeck = function() {
-  goToPlayScreen();
-};
+window.loadUser
