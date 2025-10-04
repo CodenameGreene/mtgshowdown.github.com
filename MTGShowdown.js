@@ -51,23 +51,31 @@ function goToPlayScreen() {
     return;
   }
 
-  // Update currentDeck from selected deck
   const selectedDeckId = deckSelect.value;
   db.collection("decks").doc(selectedDeckId).get()
     .then(doc => {
-      if (!doc.exists) return alert("Selected deck not found.");
+      if (!doc.exists) {
+        alert("Selected deck not found.");
+        return;
+      }
 
       currentDeck = doc.data();
       currentDeck.id = doc.id;
       if (!currentDeck.cards) currentDeck.cards = [];
-  checkDeckLegality().then(isLegal => {
-    if (isLegal) {
-      document.getElementById("mainScreen").style.display = "none";
-      document.getElementById("deckBuilder").style.display = "none";
-      document.getElementById("playScreen").style.display = "block";
-      startGame();
-    }
-  }); // <-- close the .then() properly
+
+      checkDeckLegality().then(isLegal => {
+        if (isLegal) {
+          document.getElementById("mainScreen").style.display = "none";
+          document.getElementById("deckBuilder").style.display = "none";
+          document.getElementById("playScreen").style.display = "block";
+          startGame(); // ✅ This now actually runs
+        }
+      });
+    })
+    .catch(err => {
+      console.error("Error loading deck:", err);
+      alert("Failed to load deck!");
+    });
 }
 window.showDeckBuilder = showDeckBuilder;
 window.returnToMain = returnToMain;
