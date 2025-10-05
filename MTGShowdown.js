@@ -1490,14 +1490,11 @@ function renderPlayScreen() {
 
       });
 
-
-
       secDiv.appendChild(row);
 
       opponentField.appendChild(secDiv);
 
     });
-
     const graveyardDiv = document.getElementById("graveyard");
     graveyardDiv.innerHTML = "";
      player.graveyard.forEach(c => {
@@ -1507,12 +1504,9 @@ function renderPlayScreen() {
     graveyardDiv.appendChild(img);
   }
   });
-
   // ===== MANA + TURN =====
   const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
-
   manaDiv.innerText = `Mana: W:${pool.W} U:${pool.U} B:${pool.B} R:${pool.R} G:${pool.G} C:${pool.C}`;
-
   turnDiv.innerText = `Turn: ${player.turn}`;
   // ===== END TURN BUTTON =====
   let endTurnContainer = document.getElementById("endTurnContainer");
@@ -1535,50 +1529,27 @@ function renderPlayScreen() {
 // Hover preview helpers
 
 function showCardPreview(card) {
-
   const previewDiv = document.getElementById("hoverPreview");
-
   const previewImg = document.getElementById("hoverPreviewImg");
-
   if (!previewDiv || !previewImg || !card) return;
-
   const src = card.image || (card.name ? `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image` : "");
-
   if (!src) return;
-
   previewImg.src = src;
-
   previewDiv.style.display = "block";
-
-  document.onmousemove = (e) => {
-
+ document.onmousemove = (e) => {
     previewDiv.style.left = (e.pageX + 20) + "px";
-
     previewDiv.style.top = (e.pageY + 20) + "px";
-
   };
-
 }
-
 function hideCardPreview() {
-
   const previewDiv = document.getElementById("hoverPreview");
-
-  const previewImg = document.getElementById("hoverPreviewImg");
-
+ const previewImg = document.getElementById("hoverPreviewImg");
   if (!previewDiv || !previewImg) return;
-
   previewDiv.style.display = "none";
-
   previewImg.src = "";
-
   document.onmousemove = null;
-
 }
-
-
 
 window.showCardPreview = showCardPreview;
 
 window.hideCardPreview = hideCardPreview;
-
