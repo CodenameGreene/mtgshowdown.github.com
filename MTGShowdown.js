@@ -638,7 +638,7 @@ function renderPlayScreen() {
   handDiv.innerHTML = "";
   battlefieldDiv.innerHTML = "";
 
-  // Hand
+  // 🖐 Hand
   player.hand.forEach((card, idx) => {
     const img = document.createElement("img");
     img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
@@ -650,30 +650,76 @@ function renderPlayScreen() {
     handDiv.appendChild(img);
   });
 
-  // Battlefield (no name labels)
-  player.battlefield.forEach((card, idx) => {
-    const img = document.createElement("img");
-    img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-    img.className = "card battlefield-card";
-    img.style.transform = card.isTapped ? "rotate(90deg)" : "rotate(0deg)";
-    img.style.filter = card.isTapped ? "grayscale(70%)" : "none";
-    img.onmouseenter = () => showCardPreview(card);
-    img.onmouseleave = hideCardPreview;
-    if (isLand(card)) {
-      img.style.cursor = "pointer";
-      img.onclick = () => tapLandForManaByIndex(idx);
-    }
-    battlefieldDiv.appendChild(img);
+  // 🧩 Group battlefield cards by type
+  const lands = player.battlefield.filter(c => c.type_line && c.type_line.includes("Land"));
+  const creatures = player.battlefield.filter(c => c.type_line && c.type_line.includes("Creature"));
+  const enchantments = player.battlefield.filter(c => c.type_line && c.type_line.includes("Enchantment"));
+  const artifacts = player.battlefield.filter(c => c.type_line && c.type_line.includes("Artifact"));
+  const planeswalkers = player.battlefield.filter(c => c.type_line && c.type_line.includes("Planeswalker"));
+  const others = player.battlefield.filter(
+    c => !(
+      (c.type_line && (
+        c.type_line.includes("Land") ||
+        c.type_line.includes("Creature") ||
+        c.type_line.includes("Enchantment") ||
+        c.type_line.includes("Artifact") ||
+        c.type_line.includes("Planeswalker")
+      ))
+    )
+  );
+
+  const sections = [
+    { title: "Lands", cards: lands },
+    { title: "Creatures", cards: creatures },
+    { title: "Enchantments", cards: enchantments },
+    { title: "Artifacts", cards: artifacts },
+    { title: "Planeswalkers", cards: planeswalkers },
+    { title: "Other", cards: others }
+  ];
+
+  // 🎴 Render sections
+  sections.forEach(section => {
+    if (section.cards.length === 0) return;
+    const secDiv = document.createElement("div");
+    secDiv.className = "battlefield-section";
+    const label = document.createElement("div");
+    label.className = "battlefield-label";
+    label.innerText = section.title;
+    secDiv.appendChild(label);
+
+    const row = document.createElement("div");
+    row.className = "battlefield-row";
+
+    section.cards.forEach((card, idx) => {
+      const img = document.createElement("img");
+      img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+      img.className = "card battlefield-card";
+      img.style.transform = card.isTapped ? "rotate(90deg)" : "rotate(0deg)";
+      img.style.filter = card.isTapped ? "grayscale(70%)" : "none";
+      img.onmouseenter = () => showCardPreview(card);
+      img.onmouseleave = hideCardPreview;
+
+      // only lands tappable
+      if (isLand(card)) {
+        img.style.cursor = "pointer";
+        img.onclick = () => tapLandForManaByIndex(player.battlefield.indexOf(card));
+      }
+
+      row.appendChild(img);
+    });
+
+    secDiv.appendChild(row);
+    battlefieldDiv.appendChild(secDiv);
   });
 
-  // update mana display (formatted)
-  const pool = player.manaPool || {W:0,U:0,B:0,R:0,G:0,C:0};
+  // 💧 Update mana display (only one)
+  const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
   manaDiv.innerText = `Mana: W:${pool.W} U:${pool.U} B:${pool.B} R:${pool.R} G:${pool.G} C:${pool.C}`;
 
-  // turn
+  // 🔄 Turn counter
   turnDiv.innerText = `Turn: ${player.turn}`;
 
-  // ensure only one End Turn button in your end-turn container area if you use it
+  // 🔘 End Turn button (only one)
   let endTurnContainer = document.getElementById("endTurnContainer");
   if (!endTurnContainer) {
     endTurnContainer = document.createElement("div");
@@ -687,6 +733,7 @@ function renderPlayScreen() {
   btn.onclick = endTurn;
   endTurnContainer.appendChild(btn);
 }
+
 // =====================
 // Hover preview helpers
 function showCardPreview(card) {
