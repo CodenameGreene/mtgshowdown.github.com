@@ -691,7 +691,6 @@ function renderPlayScreen() {
 });
 
     // Update mana and turn
-    const manaDiv = document.getElementById("manaDisplay");
      if (manaDiv) {
      const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
      manaDiv.innerText = `Mana: W:${pool.W} U:${pool.U} B:${pool.B} R:${pool.R} G:${pool.G} C:${pool.C}`;
