@@ -566,13 +566,13 @@ function autoTapLandsForCost(cost) {
   }
 
   // If still can't pay, tap any remaining lands (for generic)\
-  cost = getCreatureCost(card);
-  while (!canPayMana(cost) && untapped.length > 0) {
+  const adjustedCost = getCreatureCost(cost);
+  while (!canPayMana(adjustedCost) && untapped.length > 0) {
     // tap the first remaining
     const ent = untapped.shift();
     tapLandForManaByIndex(ent.i);
   }
-payMana(cost);
+payMana(adjustedCost);
 }
 function moveToGraveyard(card, from) {
   // from: "hand" | "battlefield"
