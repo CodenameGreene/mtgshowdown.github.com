@@ -725,55 +725,29 @@ function autoTapLandsForCost(cost) {
   renderPlayScreen();
 
 }
-
-
-
   // First satisfy colored requirements by tapping lands that produce those colors
-
   for (const col of ["W","U","B","R","G"]) {
-
     const need = (cost[col] || 0) - (player.manaPool[col] || 0);
-
     for (let t=0; t<need; t++) {
-
       const tapped = tapOneOfColor([col]);
-
       if (!tapped) break;
-
     }
-
   }
 
-
-
-  // If still can't pay, tap any remaining lands (for generic)\
-
+  // If still can't pay, tap any remaining lands (for generic)
   cost = getCreatureCost(card);
-
   while (!canPayMana(cost) && untapped.length > 0) {
-
     // tap the first remaining
-
-    const ent = untapped.shift();
-
+   const ent = untapped.shift();
     tapLandForManaByIndex(ent.i);
-
   }
-
 payMana(cost);
-
 }
-
 function moveToGraveyard(card, from) {
-
   // from: "hand" | "battlefield"
-
   player.graveyard.push(card);
-
   if (from === "hand") player.hand = player.hand.filter(c => c !== card);
-
   else if (from === "battlefield") player.battlefield = player.battlefield.filter(c => c !== card);
-
   renderPlayScreen();
 
 }
