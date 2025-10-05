@@ -497,6 +497,17 @@ async function startGame() {
 // =====================
 // Helpers
 // =====================
+function parseManaCost(manaCost) {
+    const mana = { W:0, U:0, B:0, R:0, G:0, C:0 };
+    if (!manaCost) return mana;
+    const symbols = manaCost.match(/\{([WUBRGC0-9]+)\}/g) || [];
+    symbols.forEach(s => {
+        const sym = s.replace(/[{}]/g,'');
+        if (mana[sym] !== undefined) mana[sym]++;
+        else mana.C++; // generic mana
+    });
+    return mana;
+}
 function isLand(card) {
     return card.type_line && card.type_line.toLowerCase().includes("land");
 }
