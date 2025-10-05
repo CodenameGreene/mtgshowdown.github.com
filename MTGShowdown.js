@@ -557,37 +557,29 @@ function moveToGraveyard(card, from) {
   if (from === "hand") player.hand = player.hand.filter(c => c !== card);
   else if (from === "battlefield") player.battlefield = player.battlefield.filter(c => c !== card);
   renderPlayScreen();
-
-
+}
 
 // =====================
-
 // Card rules helpers
-
 function isLand(card) {
   return !!(card && card.type_line && card.type_line.toLowerCase().includes("land"));
 }
-
 function isPermanent(card) {
   if (!card || !card.type_line) return false;
   const t = card.type_line.toLowerCase();
   return t.includes("creature") || t.includes("artifact") || t.includes("enchantment") || t.includes("planeswalker") || t.includes("land");
 }
-
 function getCardManaCostCount(card) {
  if (!card || !card.mana_cost) return 0;
   const matches = card.mana_cost.match(/\{[^}]+\}/g);
   return matches ? matches.length : 0;
 }
-
 function getCreatureCost(card) {
   let cost = parseManaCost(card.mana_cost);
   if (card.affinity) {
     // card.affinity = {type:"artifact"}
     const count = player.battlefield.filter(c => c.type_line.toLowerCase().includes(card.affinity.type)).length;
-
     cost.C = Math.max(0, cost.C - count); // reduce generic mana cost
-
   }
   return cost;
 }
