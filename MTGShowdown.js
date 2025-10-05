@@ -489,19 +489,26 @@ function canPayMana(cost) {
 }
 // pay mana from pool (assumes canPayMana returned true)
 function payMana(cost) {
+  console.log("payMana - before:", JSON.parse(JSON.stringify(player.manaPool)), "cost:", cost);
+  // pay colored costs first
   for (const col of ["W","U","B","R","G"]) {
-    const use = Math.min(player.manaPool[col] || 0, cost[col] || 0);
-    player.manaPool[col] -= use;
+    const need = cost[col] || 0;
+    const use = Math.min(player.manaPool[col] || 0, need);
+    player.manaPool[col] = (player.manaPool[col] || 0) - use;
   }
-  // generic cost: consume any mana from colors first then C
+
+  // pay generic (C) from any mana (colors first then colorless)
   let generic = cost.C || 0;
- const order = ["W","U","B","R","G","C"];
+  const order = ["W","U","B","R","G","C"];
   for (const sym of order) {
-    while (generic > 0 && player.manaPool[sym] > 0) {
+    while (generic > 0 && (player.manaPool[sym] || 0) > 0) {
       player.manaPool[sym]--;
       generic--;
     }
+    if (generic <= 0) break;
   }
+
+  console.log("payMana - after:", JSON.parse(JSON.stringify(player.manaPool)));
 }
 // Try to auto-tap untapped lands until canPayMana(cost) or no lands left
 // Strategy: tap lands that produce needed colors first, then any land for generic
