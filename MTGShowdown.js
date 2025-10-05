@@ -573,6 +573,7 @@ function getCardManaCost(card) {
 function playCard(index) {
     const card = player.hand[index];
     if (!card) return;
+    console.log("Mana cost string:", card.mana_cost);
 
     if (isLand(card)) {
         if (player.landsPlayed >= 1) {
