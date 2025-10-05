@@ -315,13 +315,13 @@ async function ensureTypeLines(deck) {
     if ((!card.type_line || card.type_line === "Unknown") || card.mana_cost === undefined) {
       try {
       let data = null;
-        if (card.scryfallId) 
-          const r = await fetch(`https://api.scryfall.com/cards/${card.scryfallId}`);
-          data = await r.json();
-        } else if (card.name) {
-          const r = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}`);
-          data = await r.json();
-        }
+        if (card.scryfallId) {
+  const r = await fetch(`https://api.scryfall.com/cards/${card.scryfallId}`);
+  data = await r.json();
+} else if (card.name) {
+  const r = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}`);
+  data = await r.json();
+}
         if (data) {
           card.type_line = data.type_line || card.type_line || "Unknown";
           card.mana_cost = card.mana_cost || data.mana_cost || "";
