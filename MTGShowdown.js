@@ -526,7 +526,7 @@ function playCard(index) {
         renderPlayScreen();
         return;
     }
-
+   console.log(card.name, card.type_line, isPermanent(card));
     if (!isPermanent(card)) {
         alert("Only permanents (creature, artifact, enchantment, planeswalker) can be played!");
         return;
