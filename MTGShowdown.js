@@ -466,34 +466,7 @@ let player = {
   landsPlayed: 0,
   turn: 1
 };
-async function startGame() {
-    if (!currentDeck.cards || getDeckSize() === 0) {
-        alert("Your deck is empty!");
-        return;
-    }
 
-    // Flatten deck
-    let fullDeck = [];
-    currentDeck.cards.forEach(c => {
-        for (let i = 0; i < c.qty; i++) fullDeck.push({ ...c });
-    });
-
-    // Ensure all cards have type_line
-    fullDeck = await ensureTypeLines(fullDeck);
-
-    // Shuffle deck
-    fullDeck.sort(() => Math.random() - 0.5);
-
-    // Initialize player state
-    player.deck = fullDeck;
-    player.hand = player.deck.splice(0, 7);
-    player.battlefield = [];
-    player.manaPool = 0;
-    player.landsPlayed = 0;
-    player.turn = 1;
-
-    renderPlayScreen();
-}
 function renderPlayScreen() {
     const handDiv = document.getElementById("hand");
     const battlefieldDiv = document.getElementById("battlefield");
@@ -560,21 +533,25 @@ function renderPlayScreen() {
     endTurnContainer.appendChild(endTurnBtn);
 }
 // =====================
-// Helper Functions
+// Helpers
 // =====================
 function isLand(card) {
     return card.type_line?.toLowerCase().includes("land");
 }
 
-async function isPermanent(card) {
-    const typeLine = await fetchCardTypeLine(card);
-    if (!typeLine) return false;
-
-    return /land|creature|artifact|enchantment|planeswalker/i.test(typeLine);
+function isPermanent(card) {
+    // Permanents: land, creature, artifact, enchantment, planeswalker
+    return /land|creature|artifact|enchantment|planeswalker/i.test(card.type_line || "");
 }
+
+function getCardManaCost(card) {
+    if (!card.mana_cost) return 0;
+    const matches = card.mana_cost.match(/\{[^}]+\}/g);
+    return matches ? matches.length : 0;
+}
+
 async function ensureTypeLines(deck) {
     const updatedDeck = [];
-
     for (const card of deck) {
         if (!card.type_line && card.scryfallId) {
             try {
@@ -589,41 +566,47 @@ async function ensureTypeLines(deck) {
         }
         updatedDeck.push(card);
     }
-
     return updatedDeck;
 }
-async function fetchCardTypeLine(card) {
-    if (card.type_line) return card.type_line; // already exists locally
 
-    if (!card.scryfallId) return null; // no ID, can't fetch
-
-    try {
-        const res = await fetch(`https://api.scryfall.com/cards/${card.scryfallId}`);
-        const data = await res.json();
-        card.type_line = data.type_line; // cache it locally for this game
-        return card.type_line;
-    } catch (e) {
-        console.error("Error fetching type_line for", card.name, e);
-        return null;
+// =====================
+// Start Game
+// =====================
+async function startGame() {
+    if (!currentDeck.cards || getDeckSize() === 0) {
+        alert("Your deck is empty!");
+        return;
     }
+
+    // Flatten deck
+    let fullDeck = [];
+    currentDeck.cards.forEach(c => {
+        for (let i = 0; i < c.qty; i++) fullDeck.push({ ...c });
+    });
+
+    // Ensure type_lines exist
+    fullDeck = await ensureTypeLines(fullDeck);
+
+    // Shuffle
+    fullDeck.sort(() => Math.random() - 0.5);
+
+    // Initialize player
+    player.deck = fullDeck;
+    player.hand = player.deck.splice(0, 7);
+    player.battlefield = [];
+    player.landsPlayed = 0;
+    player.turn = 1;
+
+    renderPlayScreen();
 }
 
-
-function getCardManaCost(card) {
-    if (!card.mana_cost) return 0;
-    const matches = card.mana_cost.match(/\{[^}]+\}/g);
-    return matches ? matches.length : 0;
-}
-
-
-
 // =====================
-// Play a card from hand
+// Play Card
 // =====================
-async function playCard(index) {
+function playCard(index) {
     const card = player.hand[index];
 
-    if (isLand(card)) { // still synchronous for lands
+    if (isLand(card)) {
         if (player.landsPlayed >= 1) {
             alert("You already played a land this turn!");
             return;
@@ -635,9 +618,7 @@ async function playCard(index) {
         return;
     }
 
-    // Non-land: check if permanent via Scryfall
-    const permanent = await isPermanent(card);
-    if (!permanent) {
+    if (!isPermanent(card)) {
         alert("Only permanents (creature, artifact, enchantment, planeswalker) can be played to the battlefield!");
         return;
     }
@@ -659,19 +640,18 @@ async function playCard(index) {
 }
 
 // =====================
-// Tap a land manually
+// Tap Land
 // =====================
 function tapCard(index) {
     const card = player.battlefield[index];
-    if (!isLand(card)) return; // Only lands can be tapped manually
-    if (card.isTapped) return;
+    if (!isLand(card) || card.isTapped) return;
 
     card.isTapped = true;
     renderPlayScreen();
 }
 
 // =====================
-// Render play screen
+// Render Play Screen
 // =====================
 function renderPlayScreen() {
     const handDiv = document.getElementById("hand");
@@ -682,7 +662,7 @@ function renderPlayScreen() {
     handDiv.innerHTML = "";
     battlefieldDiv.innerHTML = "";
 
-    // Display hand
+    // Hand
     player.hand.forEach((card, index) => {
         const img = document.createElement("img");
         img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
@@ -693,82 +673,52 @@ function renderPlayScreen() {
         handDiv.appendChild(img);
     });
 
-    // Display battlefield
+    // Battlefield
     player.battlefield.forEach((card, index) => {
         const img = document.createElement("img");
         img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
         img.classList.add("card", "battlefield-card");
 
-        // Gray out tapped lands
         if (card.isTapped) {
             img.style.transform = "rotate(90deg)";
-            img.style.filter = "grayscale(100%)";
+            img.style.filter = "grayscale(70%)";
         } else {
             img.style.transform = "rotate(0deg)";
             img.style.filter = "none";
         }
 
-        // Click to tap lands
         img.onclick = () => {
             if (isLand(card)) tapCard(index);
         };
 
-        // Hover preview for battlefield too
         img.onmouseenter = () => showCardPreview(card.name);
         img.onmouseleave = hideCardPreview;
 
         battlefieldDiv.appendChild(img);
     });
 
-    // Update info
     manaDiv.innerText = `Mana: ${player.battlefield.filter(c => isLand(c) && !c.isTapped).length}`;
     turnDiv.innerText = `Turn: ${player.turn}`;
 
-    // End Turn button
-    const endTurnContainer = document.getElementById("endTurnContainer");
-    if (endTurnContainer) {
-        endTurnContainer.innerHTML = "";
-    } else {
-        const container = document.createElement("div");
-        container.id = "endTurnContainer";
-        document.getElementById("playScreen").appendChild(container);
-    }
+    const endTurnContainer = document.getElementById("endTurnContainer") || document.createElement("div");
+    endTurnContainer.id = "endTurnContainer";
+    document.getElementById("playScreen").appendChild(endTurnContainer);
+    endTurnContainer.innerHTML = "";
 
     const endTurnBtn = document.createElement("button");
     endTurnBtn.innerText = "End Turn";
     endTurnBtn.classList.add("end-turn-btn");
     endTurnBtn.onclick = endTurn;
-    document.getElementById("endTurnContainer").appendChild(endTurnBtn);
+    endTurnContainer.appendChild(endTurnBtn);
 }
 
 // =====================
-// End turn
+// End Turn
 // =====================
 function endTurn() {
-    // Untap all cards
     player.battlefield.forEach(card => card.isTapped = false);
-
-    // Draw a card
     if (player.deck.length > 0) player.hand.push(player.deck.shift());
-
-    // Reset per-turn limits
     player.landsPlayed = 0;
     player.turn++;
-
     renderPlayScreen();
-}
-
-// =====================
-// Preview helpers
-// =====================
-function showCardPreview(cardName) {
-    const previewDiv = document.getElementById("hoverPreview");
-    const previewImg = document.getElementById("hoverPreviewImg");
-    previewImg.src = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}&format=image`;
-    previewDiv.style.display = "block";
-}
-
-function hideCardPreview() {
-    const previewDiv = document.getElementById("hoverPreview");
-    previewDiv.style.display = "none";
 }
