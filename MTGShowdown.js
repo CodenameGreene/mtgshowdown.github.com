@@ -789,6 +789,45 @@ player.graveyard.forEach(c => {
   btn.onclick = endTurn;
   endTurnContainer.appendChild(btn);
 }
+function drawHand(numCards = 7) {
+  console.log("🃏 Drawing opening hand...");
+  
+  if (!player.deck || player.deck.length === 0) {
+    console.error("⚠️ No deck found or deck is empty!");
+    return;
+  }
+
+  // Shuffle deck if not already shuffled
+  shuffleArray(player.deck);
+
+  // Draw cards
+  player.hand = player.deck.splice(0, numCards);
+  
+  console.log(`✅ Drew ${numCards} cards:`, player.hand.map(c => c.name));
+
+  renderHand();
+}
+function renderHand() {
+  const handDiv = document.getElementById("hand");
+  if (!handDiv) return console.error("❌ No hand div found!");
+
+  handDiv.innerHTML = ""; // Clear old cards
+
+  if (!player.hand || player.hand.length === 0) {
+    handDiv.innerHTML = "<p>(No cards in hand)</p>";
+    return;
+  }
+
+  player.hand.forEach((card, index) => {
+    const img = document.createElement("img");
+    img.classList.add("card");
+    img.src = card.image_uris?.normal || card.imageUrl || "";
+    img.alt = card.name;
+    img.title = `${card.name}\n${card.mana_cost || ""}\n${card.type_line || ""}`;
+    img.onclick = () => playCard(index);
+    handDiv.appendChild(img);
+  });
+}
 // =====================
 // Hover preview helpers
 function showCardPreview(card) {
