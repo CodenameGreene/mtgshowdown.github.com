@@ -525,6 +525,21 @@ function tapLandForMana(index) {
     else player.manaPool.C++; // generic mana for colorless lands
     renderPlayScreen();
 }
+function canPayMana(cost) {
+    const pool = {...player.manaPool}; // copy
+    for (let sym in cost) {
+        if (pool[sym] === undefined) continue;
+        if (pool[sym] < cost[sym]) return false;
+        pool[sym] -= cost[sym];
+    }
+    return true;
+}
+
+function payMana(cost) {
+    for (let sym in cost) {
+        player.manaPool[sym] -= cost[sym];
+    }
+}
 function isLand(card) {
     return card.type_line && card.type_line.toLowerCase().includes("land");
 }
