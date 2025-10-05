@@ -678,18 +678,17 @@ function renderPlayScreen() {
     });
 
     // Render battlefield
-    player.battlefield.forEach((card, index) => {
-        const img = document.createElement("img");
-        img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-        img.classList.add("card", "battlefield-card");
-        img.style.cursor = isLand(card) ? "pointer" : "default";
-        img.style.transform = card.isTapped ? "rotate(90deg)" : "rotate(0deg)";
-        img.style.filter = card.isTapped ? "grayscale(70%)" : "none";
-        img.onclick = () => { if (isLand(card)) tapCard(index); };
-        img.onmouseenter = () => showCardPreview(card);
-        img.onmouseleave = hideCardPreview;
-        battlefieldDiv.appendChild(img);
-    });
+   battlefield.forEach((card, index) => {
+  const cardDiv = document.createElement("div");
+  cardDiv.classList.add("card", "battlefield-card");
+  cardDiv.textContent = card.name + (card.isTapped ? " (tapped)" : "");
+  
+  if (isLand(card)) {
+    cardDiv.onclick = () => tapLandForMana(card);
+  }
+
+  battlefieldDiv.appendChild(cardDiv);
+});
 
     // Update mana and turn
     const manaDiv = document.getElementById("manaDisplay");
