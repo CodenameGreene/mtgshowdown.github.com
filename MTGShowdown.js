@@ -460,9 +460,11 @@ async function ensureTypeLines(deck) {
                 }
                 card.type_line = data?.type_line || "Unknown";
                 card.image = card.image || data?.image_uris?.normal || "";
+                card.mana_cost = card.mana_cost || data?.mana_cost || "";  // <--- add this
             } catch (e) {
                 console.warn("Failed to fetch type_line for", card.name);
                 card.type_line = "Unknown";
+                card.mana_cost = card.mana_cost || "";
             }
         }
     }
