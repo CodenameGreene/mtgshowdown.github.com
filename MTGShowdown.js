@@ -482,22 +482,25 @@ async function startGame() {
     // Ensure all cards have a type_line
     fullDeck = await ensureTypeLines(fullDeck);
 
-    // Shuffle deck
+    // Shuffle deck (Fisher-Yates)
     function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
     }
-    return array;
-    }
+    fullDeck = shuffle(fullDeck);
 
-   fullDeck = shuffle(fullDeck);
-
+    // Initialize player
     player.deck = fullDeck;
     player.hand = player.deck.splice(0, 7);
     player.battlefield = [];
     player.landsPlayed = 0;
     player.turn = 1;
+
+    // ⚡ Initialize mana pool here
+    player.manaPool = { W: 0, U: 0, B: 0, R: 0, G: 0, C: 0 };
 
     renderPlayScreen();
 }
