@@ -250,3 +250,19 @@ input, button {
 li:hover .hover-image {
   display: block;
 }
+.battlefield-section {
+  margin-top: 10px;
+}
+
+.battlefield-label {
+  font-weight: bold;
+  font-size: 1.2em;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.battlefield-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
