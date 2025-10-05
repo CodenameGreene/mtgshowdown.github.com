@@ -540,17 +540,37 @@ function tapLandForMana(index) {
 }
 function canPayMana(cost) {
     const pool = {...player.manaPool}; // copy
-    for (let sym in cost) {
-        if (pool[sym] === undefined) continue;
-        if (pool[sym] < cost[sym]) return false;
-        pool[sym] -= cost[sym];
+    let genericCost = cost.C || 0;
+
+    // First, pay colored mana
+    for (let sym of ["W","U","B","R","G"]) {
+        if (pool[sym] === undefined) pool[sym] = 0;
+        if ((cost[sym] || 0) > pool[sym]) return false;
+        pool[sym] -= (cost[sym] || 0);
     }
-    return true;
+
+    // Now pay generic cost with remaining colorless + any leftover colored mana
+    let available = pool.C + pool.W + pool.U + pool.B + pool.R + pool.G;
+    return available >= genericCost;
 }
 
 function payMana(cost) {
-    for (let sym in cost) {
-        player.manaPool[sym] -= cost[sym];
+    let pool = player.manaPool;
+
+    // Pay colored mana first
+    for (let sym of ["W","U","B","R","G"]) {
+        pool[sym] -= Math.min(pool[sym], cost[sym] || 0);
+    }
+
+    // Pay generic cost using any mana
+    let generic = cost.C || 0;
+    while (generic > 0) {
+        for (let sym of ["W","U","B","R","G","C"]) {
+            if (pool[sym] > 0 && generic > 0) {
+                pool[sym]--;
+                generic--;
+            }
+        }
     }
 }
 function isLand(card) {
