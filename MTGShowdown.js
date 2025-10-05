@@ -641,15 +641,18 @@ window.endTurn = endTurn;
 function renderPlayScreen() {
   const handDiv = document.getElementById("hand");
   const battlefieldDiv = document.getElementById("battlefield");
+  const opponentField = document.getElementById("opponentBattlefield");
   const manaDiv = document.getElementById("manaCount");
   const turnDiv = document.getElementById("turnCounter");
 
-  if (!handDiv || !battlefieldDiv || !manaDiv || !turnDiv) return;
+  if (!handDiv || !battlefieldDiv || !opponentField || !manaDiv || !turnDiv) return;
 
+  // Clear everything
   handDiv.innerHTML = "";
   battlefieldDiv.innerHTML = "";
+  opponentField.innerHTML = "";
 
-  // 🖐 Hand
+  // ===== HAND =====
   player.hand.forEach((card, idx) => {
     const img = document.createElement("img");
     img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
@@ -661,56 +664,44 @@ function renderPlayScreen() {
     handDiv.appendChild(img);
   });
 
-  // 🧩 Group battlefield cards by type
-  const lands = player.battlefield.filter(c => c.type_line && c.type_line.includes("Land"));
-  const creatures = player.battlefield.filter(c => c.type_line && c.type_line.includes("Creature"));
-  const enchantments = player.battlefield.filter(c => c.type_line && c.type_line.includes("Enchantment"));
-  const artifacts = player.battlefield.filter(c => c.type_line && c.type_line.includes("Artifact"));
-  const planeswalkers = player.battlefield.filter(c => c.type_line && c.type_line.includes("Planeswalker"));
-  const others = player.battlefield.filter(
-    c => !(
-      (c.type_line && (
-        c.type_line.includes("Land") ||
-        c.type_line.includes("Creature") ||
-        c.type_line.includes("Enchantment") ||
-        c.type_line.includes("Artifact") ||
-        c.type_line.includes("Planeswalker")
-      ))
-    )
-  );
+  // ===== PLAYER BATTLEFIELD =====
+  const sections = {
+    Land: [],
+    Creature: [],
+    Enchantment: [],
+    Artifact: [],
+    Planeswalker: [],
+    Other: []
+  };
 
-  const sections = [
-    { title: "Lands", cards: lands },
-    { title: "Creatures", cards: creatures },
-    { title: "Enchantments", cards: enchantments },
-    { title: "Artifacts", cards: artifacts },
-    { title: "Planeswalkers", cards: planeswalkers },
-    { title: "Other", cards: others }
-  ];
+  player.battlefield.forEach(card => {
+    const sec = getCardSection(card);
+    sections[sec].push(card);
+  });
 
-  // 🎴 Render sections
-  sections.forEach(section => {
-    if (section.cards.length === 0) return;
+  Object.entries(sections).forEach(([title, cards]) => {
+    if (cards.length === 0) return;
+
     const secDiv = document.createElement("div");
     secDiv.className = "battlefield-section";
     const label = document.createElement("div");
     label.className = "battlefield-label";
-    label.innerText = section.title;
+    label.innerText = title;
     secDiv.appendChild(label);
 
     const row = document.createElement("div");
     row.className = "battlefield-row";
 
-    section.cards.forEach((card, idx) => {
+    cards.forEach(card => {
       const img = document.createElement("img");
       img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
       img.className = "card battlefield-card";
       img.style.transform = card.isTapped ? "rotate(90deg)" : "rotate(0deg)";
       img.style.filter = card.isTapped ? "grayscale(70%)" : "none";
+
       img.onmouseenter = () => showCardPreview(card);
       img.onmouseleave = hideCardPreview;
 
-      // only lands tappable
       if (isLand(card)) {
         img.style.cursor = "pointer";
         img.onclick = () => tapLandForManaByIndex(player.battlefield.indexOf(card));
@@ -723,14 +714,55 @@ function renderPlayScreen() {
     battlefieldDiv.appendChild(secDiv);
   });
 
-  // 💧 Update mana display (only one)
+  // ===== OPPONENT FIELD =====
+  if (opponent && opponent.battlefield) {
+    const oppSections = {
+      Land: [],
+      Creature: [],
+      Enchantment: [],
+      Artifact: [],
+      Planeswalker: [],
+      Other: []
+    };
+
+    opponent.battlefield.forEach(card => {
+      const sec = getCardSection(card);
+      oppSections[sec].push(card);
+    });
+
+    Object.entries(oppSections).forEach(([title, cards]) => {
+      if (cards.length === 0) return;
+
+      const secDiv = document.createElement("div");
+      secDiv.className = "battlefield-section opponent-section";
+      const label = document.createElement("div");
+      label.className = "battlefield-label";
+      label.innerText = title;
+      secDiv.appendChild(label);
+
+      const row = document.createElement("div");
+      row.className = "battlefield-row";
+
+      cards.forEach(card => {
+        const img = document.createElement("img");
+        img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+        img.className = "card battlefield-card opponent-card";
+        img.onmouseenter = () => showCardPreview(card);
+        img.onmouseleave = hideCardPreview;
+        row.appendChild(img);
+      });
+
+      secDiv.appendChild(row);
+      opponentField.appendChild(secDiv);
+    });
+  }
+
+  // ===== MANA + TURN =====
   const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
   manaDiv.innerText = `Mana: W:${pool.W} U:${pool.U} B:${pool.B} R:${pool.R} G:${pool.G} C:${pool.C}`;
-
-  // 🔄 Turn counter
   turnDiv.innerText = `Turn: ${player.turn}`;
 
-  // 🔘 End Turn button (only one)
+  // ===== END TURN BUTTON =====
   let endTurnContainer = document.getElementById("endTurnContainer");
   if (!endTurnContainer) {
     endTurnContainer = document.createElement("div");
