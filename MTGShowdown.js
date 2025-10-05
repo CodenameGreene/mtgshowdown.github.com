@@ -536,13 +536,11 @@ function autoTapLandsForCost(cost) {
   }
 
   // If still can't pay, tap any remaining lands (for generic)
-  newCost = getCreatureCost(cost);
-  while (!canPayMana(NewCost) && untapped.length > 0) {
-    // tap the first remaining
-   const ent = untapped.shift();
-    tapLandForManaByIndex(ent.i);
-  }
-payMana(newCost);
+   while (!canPayMana(cost) && untapped.length > 0) {
+  const ent = untapped.shift();
+  tapLandForManaByIndex(ent.i);
+}
+payMana(cost);
 }
 function playLand(card) {
   const entersTapped = card.entersTapped || false; // set this manually or via Scryfall oracle text
