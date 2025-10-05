@@ -614,9 +614,6 @@ currentDeck.cards.forEach(c => {
     for (let i = 0; i < c.qty; i++) fullDeck.push({ ...c });
 });
 
-// Ensure type_lines exist
-fullDeck = await ensureTypeLines(fullDeck);
-
     // Ensure type_lines exist
     fullDeck = await ensureTypeLines(fullDeck);
 
