@@ -655,7 +655,7 @@ function renderPlayScreen() {
   const handDiv = document.getElementById("hand");
   const battlefieldDiv = document.getElementById("battlefield");
   const opponentField = document.getElementById("opponentBattlefield");
-  const manaDiv = document.getElementById("manaCount");
+  const manaDiv = document.getElementById("manaPool");
   const turnDiv = document.getElementById("turnCounter");
   if (!handDiv || !battlefieldDiv || !opponentField || !manaDiv || !turnDiv) return;
 
