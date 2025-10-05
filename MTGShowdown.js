@@ -772,6 +772,13 @@ function renderPlayScreen() {
       secDiv.appendChild(row);
       opponentField.appendChild(secDiv);
     });
+    const graveyardDiv = document.getElementById("graveyard");
+    graveyardDiv.innerHTML = "";
+     player.graveyard.forEach(c => {
+    const img = document.createElement("img");
+     img.src = c.image;
+    img.className = "card small-card";
+    graveyardDiv.appendChild(img);
   }
 
   // ===== MANA + TURN =====
