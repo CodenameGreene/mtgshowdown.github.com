@@ -615,6 +615,10 @@ function endTurn() {
     player.battlefield.forEach(card => card.isTapped = false);
     if (player.deck.length > 0) player.hand.push(player.deck.shift());
     player.landsPlayed = 0;
+    
+    // Reset mana pool at end of turn
+    player.manaPool = { W: 0, U: 0, B: 0, R: 0, G: 0, C: 0 };
+
     player.turn++;
     renderPlayScreen();
 }
