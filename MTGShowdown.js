@@ -642,10 +642,10 @@ function renderPlayScreen() {
     img.onmouseenter = () => showCardPreview(card);
     img.onmouseleave = hideCardPreview;
 
-    if (isLand(card)) {
-      img.style.cursor = "pointer";
-      img.onclick = () => tapCard(idx);
-    }
+   if (isLand(card)) {
+  img.style.cursor = "pointer";
+  img.onclick = () => tapLandForManaByIndex(idx); 
+}
 
     battlefieldDiv.appendChild(img);
   });
