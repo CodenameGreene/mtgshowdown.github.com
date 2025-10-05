@@ -597,7 +597,7 @@ function playCard(index) {
   console.log("Parsed cost:", cost);
   // Try to auto-tap lands to generate mana (if needed)
   if (!canPayMana(cost)) {
-    const tappedEnough = autoTapLandsForCost(cost);
+    const tappedEnough = await autoTapLandsForCost(cost);
     if (!tappedEnough) { alert("Not enough mana! Tap lands manually or add lands."); return; }
   }
   // pay
