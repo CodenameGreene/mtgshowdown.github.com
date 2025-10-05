@@ -466,23 +466,22 @@ let player = {
   landsPlayed: 0,
   turn: 1
 };
-function startGame() {
+async function startGame() {
     if (!currentDeck.cards || getDeckSize() === 0) {
         alert("Your deck is empty!");
         return;
     }
 
-    // Flatten and shuffle deck
+    // Flatten deck
     let fullDeck = [];
     currentDeck.cards.forEach(c => {
-        for (let i = 0; i < c.qty; i++) {
-            // Make sure type_line exists
-            fullDeck.push({
-                ...c,
-                type_line: c.type_line || "Land" // fallback to Land if missing
-            });
-        }
+        for (let i = 0; i < c.qty; i++) fullDeck.push({ ...c });
     });
+
+    // Ensure all cards have type_line
+    fullDeck = await ensureTypeLines(fullDeck);
+
+    // Shuffle deck
     fullDeck.sort(() => Math.random() - 0.5);
 
     // Initialize player state
