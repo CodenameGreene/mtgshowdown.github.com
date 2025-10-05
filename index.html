@@ -115,21 +115,21 @@
 
   <!-- Play area styled using your CSS -->
   <div id="playScreen" style="display:none;">
-  <h2>Game Mode: <span id="playFormat"></span></h2>
-  <button class="small-button" onclick="returnToMain()">Return</button>
-  <div id="gameInfo" style="margin:10px;">
-    <span id="manaCount">Mana: 0</span> |
-    <span id="turnCounter">Turn: 1</span>
+  <div id="topSection">
+    <div id="opponentBattlefield" class="battlefield"></div>
   </div>
 
+  <div id="middleSection">
+    <div id="manaCount">Mana: W:0 U:0 B:0 R:0 G:0 C:0</div>
+    <div id="turnCounter">Turn: 1</div>
+    <div id="endTurnContainer"></div>
+  </div>
 
-  <div id="playArea" class="panel">
-    <h3>Your Hand</h3>
-    <div id="hand" class="hand"></div>
-
-    <h3>Battlefield</h3>
+  <div id="bottomSection">
     <div id="battlefield" class="battlefield"></div>
+    <div id="hand"></div>
   </div>
+</div>
   <!-- Hover Preview -->
 <div id="hoverPreview" style="display:none; position:absolute; z-index:1000;">
     <img id="hoverPreviewImg" src="" alt="Card Preview" style="max-width:200px;">
