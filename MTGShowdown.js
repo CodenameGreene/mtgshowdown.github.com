@@ -51,6 +51,31 @@ function returnToMain() {
     document.getElementById("deckBuilder").style.display = "none";
     document.getElementById("playScreen").style.display = "none";
 }
+function mainScreenDeckChanged() {
+    const deckId = document.getElementById("mainDeckSelect").value;
+    if (!deckId) {
+        currentDeck = { name: "", format: "", cards: [] }; // empty
+        updatePlayButton();
+        return;
+    }
+
+    db.collection("decks").doc(deckId).get().then(doc => {
+        if (!doc.exists) return alert("Deck not found.");
+
+        currentDeck = doc.data();
+        currentDeck.id = doc.id;
+        if (!currentDeck.cards) currentDeck.cards = [];
+
+        // Optionally update deck builder inputs too
+        document.getElementById("deckNameInput").value = currentDeck.name;
+        document.getElementById("deckFormatSelect").value = currentDeck.format;
+
+        renderDeck();
+        updatePlayButton();
+    });
+}
+window.mainScreenDeckChanged = mainScreenDeckChanged;
+
 
 function goToPlayScreen() {
     const deckSelect = document.getElementById("mainDeckSelect");
