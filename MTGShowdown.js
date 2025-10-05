@@ -520,50 +520,65 @@ function payMana(cost) {
 // =====================
 // Card preview
 // =====================
+// =====================
+// Card preview using hoverPreview div
+// =====================
 function showCardPreview(card) {
-  const div = document.getElementById("cardPreview");
+  const div = document.getElementById("hoverPreview");
   if (!div) return;
+  const img = div.querySelector("img");
+  if (card.image) img.src = card.image;
+  else img.src = "";
   div.style.display = "block";
-  if (card.image) div.innerHTML = `<img src="${card.image}" style="width:200px;">`;
-  else div.innerText = card.name;
 }
 
 function hideCardPreview() {
-  const div = document.getElementById("cardPreview");
+  const div = document.getElementById("hoverPreview");
   if (!div) return;
   div.style.display = "none";
 }
+
 window.showCardPreview = showCardPreview;
 window.hideCardPreview = hideCardPreview;
 
 // =====================
-// Play screen rendering
+// Render Play Screen
 // =====================
 function renderPlayScreen() {
-  const handDiv = document.getElementById("handArea");
-  const bfDiv = document.getElementById("battlefieldArea");
+  const handDiv = document.getElementById("hand");
+  const bfDiv = document.getElementById("battlefield");
   const graveDiv = document.getElementById("graveyard");
 
   if (!handDiv || !bfDiv || !graveDiv) return;
 
   // --- Hand ---
   handDiv.innerHTML = "";
-  player.hand.forEach((c, i) => {
+  player.hand.forEach((c,i) => {
     const cardDiv = document.createElement("div");
     cardDiv.className = "card";
 
     if (c.image) {
       const img = document.createElement("img");
       img.src = c.image;
-      img.style.width = "100px";
-      img.style.cursor = "pointer";
+      img.className = "card-image";
 
       img.addEventListener("mouseenter", () => showCardPreview(c));
       img.addEventListener("mouseleave", hideCardPreview);
+      img.addEventListener("click", () => {
+        // Move card from hand to battlefield
+        player.battlefield.push(c);
+        player.hand.splice(i,1);
+        renderPlayScreen();
+      });
 
       cardDiv.appendChild(img);
     } else {
       cardDiv.innerText = c.name;
+      cardDiv.onclick = () => {
+        player.battlefield.push(c);
+        player.hand.splice(i,1);
+        renderPlayScreen();
+      };
     }
 
     handDiv.appendChild(cardDiv);
@@ -571,15 +586,14 @@ function renderPlayScreen() {
 
   // --- Battlefield ---
   bfDiv.innerHTML = "";
-  player.battlefield.forEach((c, i) => {
+  player.battlefield.forEach((c,i) => {
     const cardDiv = document.createElement("div");
     cardDiv.className = "card";
 
     if (c.image) {
       const img = document.createElement("img");
       img.src = c.image;
-      img.style.width = "120px";
-      img.style.cursor = "pointer";
+      img.className = "card-image";
       if (c.isTapped) img.style.opacity = 0.6;
 
       img.addEventListener("mouseenter", () => showCardPreview(c));
@@ -590,6 +604,7 @@ function renderPlayScreen() {
       cardDiv.innerText = c.name + (c.isTapped ? " (T)" : "");
     }
 
+    // Tap lands for mana
     if (getCardSection(c) === "Land" && !c.isTapped) {
       cardDiv.onclick = () => tapLandForManaByIndex(i);
     }
@@ -602,31 +617,35 @@ function renderPlayScreen() {
   player.graveyard.forEach(c => {
     const cardDiv = document.createElement("div");
     cardDiv.className = "card";
+
     if (c.image) {
       const img = document.createElement("img");
       img.src = c.image;
-      img.style.width = "80px";
-      img.style.cursor = "pointer";
+      img.className = "card-image";
       img.addEventListener("mouseenter", () => showCardPreview(c));
       img.addEventListener("mouseleave", hideCardPreview);
       cardDiv.appendChild(img);
     } else {
       cardDiv.innerText = c.name;
     }
+
     graveDiv.appendChild(cardDiv);
   });
 
-  // --- Mana pool & turn ---
-  const poolDiv = document.getElementById("manaPool");
-  if (poolDiv) poolDiv.innerText = `Mana Pool: ${Object.entries(player.manaPool)
+  // --- Mana Pool & Turn ---
+  const poolDiv = document.getElementById("manaCount");
+  if (poolDiv) poolDiv.innerText = `Mana: ${Object.entries(player.manaPool)
     .map(([k,v])=> v>0?`${k}:${v}`:"").filter(Boolean).join(", ")}`;
 
   const turnDiv = document.getElementById("turnCounter");
   if (turnDiv) turnDiv.innerText = `Turn: ${player.turn}`;
 }
 
-
 window.renderPlayScreen = renderPlayScreen;
+
+
+
+
 
 // =====================
 // Auto-tap lands for mana (for simple spells)
