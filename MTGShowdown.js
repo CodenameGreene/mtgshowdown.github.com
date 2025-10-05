@@ -353,137 +353,71 @@ function shuffle(array) {
   return array;
 }
 async function startGame() {
-
   if (!currentDeck.cards || getDeckSize() === 0) { alert("Your deck is empty!"); return; }
-
   let full = [];
-
   currentDeck.cards.forEach(c => {
-
     for (let i=0;i<(c.qty||0);i++) full.push({ ...c });
-
   });
-
   full = await ensureTypeLines(full);
-
   full = shuffle(full);
-
   player.deck = full;
-
   player.hand = player.deck.splice(0,7);
-
   player.battlefield = [];
-
   player.landsPlayed = 0;
-
   player.turn = 1;
-
   player.manaPool = { W:0, U:0, B:0, R:0, G:0, C:0 };
-
   renderPlayScreen();
-
 }
-
 window.startGame = startGame;
-
 function goToPlayScreen() {
-
   const deckSelect = document.getElementById("mainDeckSelect");
-
   if (!deckSelect || !deckSelect.value) { alert("Please select a deck from the main screen first!"); return; }
-
   const selectedDeckId = deckSelect.value;
-
   db.collection("decks").doc(selectedDeckId).get()
-
     .then(doc => {
-
       if (!doc.exists) return alert("Selected deck not found.");
-
       currentDeck = doc.data(); currentDeck.id = doc.id; if (!currentDeck.cards) currentDeck.cards = [];
-
       checkDeckLegality().then(isLegal => {
-
         if (isLegal) {
-
           document.getElementById("mainScreen").style.display = "none";
-
           document.getElementById("deckBuilder").style.display = "none";
-
           document.getElementById("playScreen").style.display = "block";
-
           startGame();
-
         }
-
       });
-
     }).catch(err => { console.error("Error loading deck:", err); alert("Failed to load deck!"); });
-
 }
-
 window.goToPlayScreen = goToPlayScreen;
-
 window.playDeck = goToPlayScreen;
-
-
-
 // =====================
 
 // Mana parsing & helpers
-
 function parseManaCost(manaCost) {
-
   // returns object {W:0,U:0,B:0,R:0,G:0,C:0}
-
   const mana = { W:0, U:0, B:0, R:0, G:0, C:0 };
-
   if (!manaCost) return mana;
-
   // match {X} tokens
-
   const tokens = manaCost.match(/\{([^}]+)\}/g) || [];
-
   for (let t of tokens) {
-
     const sym = t.replace(/[{}]/g, '').trim();
-
     // numeric generic like "3"
-
     if (/^\d+$/.test(sym)) {
-
       mana.C += Number(sym);
-
     } else {
-
-      // consider only single-letter color symbols W U B R G
-
-      const letter = sym[0].toUpperCase();
-
+     // consider only single-letter color symbols W U B R G
+      const letter = sym[0].toUpperCase()
       if (["W","U","B","R","G"].includes(letter)) mana[letter]++;
-
       else mana.C++; // fallback: treat unknown as colorless
-
     }
-
   }
-
   return mana;
-
 }
-
-
 
 // When player clicks a land on battlefield, call this with its index
 
 async function tapLandForManaByIndex(index) {
-
   const land = player.battlefield[index];
-
   if (!land || land.isTapped) return;
-
-
-
   land.isTapped = true;
 
   const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
