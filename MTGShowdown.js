@@ -508,8 +508,8 @@ function renderPlayScreen() {
         };
 
         // Hover preview
-        img.onmouseenter = () => showCardPreview(card.name);
-        img.onmouseleave = hideCardPreview;
+        img.onmouseenter = () => showCardPreview(card);
+         img.onmouseleave = hideCardPreview;
 
         battlefieldDiv.appendChild(img);
     });
