@@ -215,7 +215,7 @@ function renderDeck() {
     const li = document.createElement("li");
     li.innerHTML = `<span class="card-name" style="cursor:pointer; text-decoration:underline;">${card.name}</span>
       <button class="small-button" onclick="modifyCard(${index}, -1)">-</button>
-      <span>${card.qty}</span
+      <span>${card.qty}</span>
       <button class="small-button" onclick="modifyCard(${index}, 1)">+</button>`;
     const nameSpan = li.querySelector(".card-name");
     nameSpan.addEventListener("mouseenter", ()=> showCardPreview(card));
