@@ -620,10 +620,10 @@ function getCardManaCost(card) {
 // =====================
 // Play a card from hand
 // =====================
-function playCard(index) {
+async function playCard(index) {
     const card = player.hand[index];
 
-    if (isLand(card)) {
+    if (isLand(card)) { // still synchronous for lands
         if (player.landsPlayed >= 1) {
             alert("You already played a land this turn!");
             return;
@@ -635,8 +635,9 @@ function playCard(index) {
         return;
     }
 
-    // Non-land: must be a permanent
-    if (!isPermanent(card)) {
+    // Non-land: check if permanent via Scryfall
+    const permanent = await isPermanent(card);
+    if (!permanent) {
         alert("Only permanents (creature, artifact, enchantment, planeswalker) can be played to the battlefield!");
         return;
     }
@@ -656,6 +657,7 @@ function playCard(index) {
     player.battlefield.push({ ...card, isTapped: false });
     renderPlayScreen();
 }
+
 // =====================
 // Tap a land manually
 // =====================
