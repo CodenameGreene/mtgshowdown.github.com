@@ -612,11 +612,10 @@ function renderPlayScreen() {
 
   if (!handDiv || !battlefieldDiv || !manaDiv || !turnDiv) return;
 
-  // clear
   handDiv.innerHTML = "";
   battlefieldDiv.innerHTML = "";
 
-  // render hand images
+  // Hand cards
   player.hand.forEach((card, idx) => {
     const img = document.createElement("img");
     img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
@@ -628,11 +627,8 @@ function renderPlayScreen() {
     handDiv.appendChild(img);
   });
 
-  // render battlefield from player.battlefield (NOT some undefined variable)
+  // Battlefield cards (no labels)
   player.battlefield.forEach((card, idx) => {
-    const container = document.createElement("div");
-    container.className = "battle-perm";
-
     const img = document.createElement("img");
     img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
     img.className = "card battlefield-card";
@@ -641,25 +637,35 @@ function renderPlayScreen() {
     img.onmouseenter = () => showCardPreview(card);
     img.onmouseleave = hideCardPreview;
 
-    // clicking a land taps it and adds mana
     if (isLand(card)) {
       img.style.cursor = "pointer";
       img.onclick = () => tapCard(idx);
-    } else {
-      img.style.cursor = "default";
-      img.onclick = null;
     }
 
-    // name label
-    const label = document.createElement("div");
-    label.className = "bf-label";
-    label.innerText = card.name;
-
-    container.appendChild(img);
-    container.appendChild(label);
-    battlefieldDiv.appendChild(container);
+    battlefieldDiv.appendChild(img);
   });
 
+  // Update mana pool display
+  const p = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
+  manaDiv.innerText = `W:${p.W}  U:${p.U}  B:${p.B}  R:${p.R}  G:${p.G}  C:${p.C}`;
+
+  // Turn display
+  turnDiv.innerText = `Turn: ${player.turn}`;
+
+  // Ensure single End Turn button
+  let endTurnContainer = document.getElementById("endTurnContainer");
+  if (!endTurnContainer) {
+    endTurnContainer = document.createElement("div");
+    endTurnContainer.id = "endTurnContainer";
+    document.getElementById("playScreen").appendChild(endTurnContainer);
+  }
+  endTurnContainer.innerHTML = "";
+  const btn = document.createElement("button");
+  btn.className = "small-button end-turn-btn";
+  btn.innerText = "End Turn";
+  btn.onclick = endTurn;
+  endTurnContainer.appendChild(btn);
+}
   // update mana display (formatted)
   const pool = player.manaPool || {W:0,U:0,B:0,R:0,G:0,C:0};
   manaDiv.innerText = `Mana: W:${pool.W} U:${pool.U} B:${pool.B} R:${pool.R} G:${pool.G} C:${pool.C}`;
