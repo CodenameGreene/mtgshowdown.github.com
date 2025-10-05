@@ -566,7 +566,7 @@ function autoTapLandsForCost(cost) {
   }
 
   // If still can't pay, tap any remaining lands (for generic)\
-   const cost = getCreatureCost(card);
+  cost = getCreatureCost(card);
   while (!canPayMana(cost) && untapped.length > 0) {
     // tap the first remaining
     const ent = untapped.shift();
