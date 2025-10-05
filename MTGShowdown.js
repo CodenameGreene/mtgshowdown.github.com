@@ -681,6 +681,7 @@ function renderPlayScreen() {
     Planeswalker: [],
     Other: []
   };
+  console.log("Rendering hand, player.hand =", player.hand);
   player.battlefield.forEach(card => {
     const sec = getCardSection(card);
     sections[sec].push(card);
