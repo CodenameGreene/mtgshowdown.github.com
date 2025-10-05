@@ -693,335 +693,157 @@ function moveToGraveyard(card, from) {
 // Card rules helpers
 
 function isLand(card) {
-
   return !!(card && card.type_line && card.type_line.toLowerCase().includes("land"));
-
 }
 
 function isPermanent(card) {
-
   if (!card || !card.type_line) return false;
-
   const t = card.type_line.toLowerCase();
-
   return t.includes("creature") || t.includes("artifact") || t.includes("enchantment") || t.includes("planeswalker") || t.includes("land");
-
 }
 
-
-
 function getCardManaCostCount(card) {
-
-  if (!card || !card.mana_cost) return 0;
-
+ if (!card || !card.mana_cost) return 0;
   const matches = card.mana_cost.match(/\{[^}]+\}/g);
-
   return matches ? matches.length : 0;
-
 }
 
 function getCreatureCost(card) {
-
   let cost = parseManaCost(card.mana_cost);
-
   if (card.affinity) {
-
     // card.affinity = {type:"artifact"}
-
     const count = player.battlefield.filter(c => c.type_line.toLowerCase().includes(card.affinity.type)).length;
 
     cost.C = Math.max(0, cost.C - count); // reduce generic mana cost
 
   }
-
   return cost;
-
 }
-
-
-
 // =====================
-
 // Play logic: play a card from hand
-
 function playCard(index) {
-
   const card = player.hand[index];
-
   if (!card) return;
-
   console.log("Attempting to play:", card.name, "type_line:", card.type_line, "mana_cost:", card.mana_cost);
-
-
-
   if (isLand(card)) {
-
     if (player.landsPlayed >= 1) { alert("You already played a land this turn!"); return; }
-
     player.hand.splice(index,1);
-
     player.battlefield.push({...card, isTapped:false});
-
     player.landsPlayed++;
-
     renderPlayScreen();
-
     return;
-
   }
-
-
-
   if (!isPermanent(card)) {
-
     alert("Only permanents (creature, artifact, enchantment, planeswalker) can be played to the battlefield!");
-
     return;
-
   }
-
-
-
   const cost = parseManaCost(card.mana_cost || "");
-
   console.log("Parsed cost:", cost);
-
-
-
   // Try to auto-tap lands to generate mana (if needed)
-
   if (!canPayMana(cost)) {
-
     const tappedEnough = autoTapLandsForCost(cost);
-
     if (!tappedEnough) { alert("Not enough mana! Tap lands manually or add lands."); return; }
-
   }
-
-
-
   // pay
-
   payMana(cost);
-
-
-
   // move card
-
   player.hand.splice(index,1);
-
   player.battlefield.push({...card, isTapped:false});
-
   renderPlayScreen();
-
 }
-
 window.playCard = playCard;
-
 function playInstant(index) {
-
   const card = player.hand[index];
-
   if (!card || !card.type_line.toLowerCase().includes("instant")) return;
-
   // For now, just trigger the effect placeholder
-
   alert(`${card.name} resolves!`);
-
   moveToGraveyard(card, "hand");
-
 }
-
-
-
 // tapCard for clicking land on battlefield (index)
-
 function tapCard(index) {
-
   const card = player.battlefield[index];
-
   if (!card || !isLand(card) || card.isTapped) return;
-
   tapLandForManaByIndex(index);
-
 }
-
 window.tapCard = tapCard;
-
 function tapCreatureForMana(index) {
-
   const creature = player.battlefield[index];
-
   if (!creature || !creature.type_line.toLowerCase().includes("creature")) return;
-
   if (creature.isTapped) return;
-
-
-
   creature.isTapped = true;
-
   const produced = creature.produced_mana || []; // array of mana symbols
-
   const pool = player.manaPool;
-
   produced.forEach(m => pool[m] = (pool[m] || 0) + 1);
-
   player.manaPool = pool;
-
   renderPlayScreen();
-
 }
-
-
-
 function endTurn() {
-
   // Untap all permanents
-
   player.battlefield.forEach(c => c.isTapped = false);
-
   // draw
-
   if (player.deck.length > 0) player.hand.push(player.deck.shift());
-
   player.landsPlayed = 0;
-
   // clear mana pool at EOT
-
   player.manaPool = { W:0, U:0, B:0, R:0, G:0, C:0 };
-
   player.turn++;
-
   renderPlayScreen();
-
 }
-
 window.endTurn = endTurn;
-
-
-
 // =====================
-
 // Render play screen (fixed)
-
 function renderPlayScreen() {
-
   const handDiv = document.getElementById("hand");
-
   const battlefieldDiv = document.getElementById("battlefield");
-
   const opponentField = document.getElementById("opponentBattlefield");
-
   const manaDiv = document.getElementById("manaCount");
-
   const turnDiv = document.getElementById("turnCounter");
-
-
-
   if (!handDiv || !battlefieldDiv || !opponentField || !manaDiv || !turnDiv) return;
 
-
-
   // Clear everything
-
   handDiv.innerHTML = "";
-
   battlefieldDiv.innerHTML = "";
-
   opponentField.innerHTML = "";
-
-
-
   // ===== HAND =====
 
   player.hand.forEach((card, idx) => {
-
     const img = document.createElement("img");
-
     img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-
     img.className = "card";
-
     img.style.cursor = "pointer";
-
     img.onclick = () => playCard(idx);
-
     img.onmouseenter = () => showCardPreview(card);
-
     img.onmouseleave = hideCardPreview;
-
     handDiv.appendChild(img);
-
   });
-
-
 
   // ===== PLAYER BATTLEFIELD =====
-
   const sections = {
-
     Land: [],
-
     Creature: [],
-
     Enchantment: [],
-
     Artifact: [],
-
     Planeswalker: [],
-
     Other: []
-
   };
-
-
-
   player.battlefield.forEach(card => {
-
     const sec = getCardSection(card);
-
     sections[sec].push(card);
-
   });
-
-
-
   Object.entries(sections).forEach(([title, cards]) => {
-
     if (cards.length === 0) return;
-
-
-
     const secDiv = document.createElement("div");
-
     secDiv.className = "battlefield-section";
-
     const label = document.createElement("div");
-
     label.className = "battlefield-label";
-
     label.innerText = title;
-
     secDiv.appendChild(label);
-
-
-
     const row = document.createElement("div");
-
     row.className = "battlefield-row";
-
-
-
     cards.forEach(card => {
-
       const img = document.createElement("img");
-
       img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-
       img.className = "card battlefield-card";
-
       img.style.transform = card.isTapped ? "rotate(90deg)" : "rotate(0deg)";
-
       img.style.filter = card.isTapped ? "grayscale(70%)" : "none";
       img.onmouseenter = () => showCardPreview(card);
       img.onmouseleave = hideCardPreview;
