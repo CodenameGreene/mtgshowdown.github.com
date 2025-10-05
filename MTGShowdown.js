@@ -1,19 +1,13 @@
 // MTGShowdown.js (fixed & cleaned)
 // =====================
 // Firebase already initialized in index.html
-
 const auth = window.auth;
 const db = window.db;
-
 // =====================
-
 // Global State
-
 // =====================
-
 let currentDeck = { name: "", format: "", cards: [] };
 let player = {
-
   deck: [],
   hand: [],
   battlefield: [],
@@ -23,9 +17,6 @@ let player = {
   manaPool: { W:0, U:0, B:0, R:0, G:0, C:0 }
 
 };
-
-
-
 let opponent = {
   deck: [],
   hand: [],
@@ -34,16 +25,12 @@ let opponent = {
   landsPlayed: 0,
   turn: 1,
   manaPool: { W:0, U:0, B:0, R:0, G:0, C:0 }
-
 };
 // =====================
-
 // Utilities
-
 // =====================
 
 function changeMenuLabel(label) {
-
   document.getElementById("menuButton").innerText = label + " ▾";
 }
 function toggleDropdown() {
@@ -59,7 +46,6 @@ window.onclick = function(event) {
   }
 
 };
-
 // =====================
 // Screen Navigation
 // =====================
@@ -76,9 +62,7 @@ function returnToMain() {
 window.showDeckBuilder = showDeckBuilder;
 window.returnToMain = returnToMain;
 // =====================
-
 // Deck selection (exposed for HTML onchange)
-
 // =====================
 function mainScreenDeckChanged() {
   const deckId = document.getElementById("mainDeckSelect").value;
@@ -87,7 +71,6 @@ function mainScreenDeckChanged() {
     updatePlayButton();
     return;
   }
-
   db.collection("decks").doc(deckId).get().then(doc => {
   if (!doc.exists) return alert("Deck not found.");
     currentDeck = doc.data();
@@ -139,369 +122,181 @@ function signup() {
 }
 
 function logout() {
-
   auth.signOut().then(() => {
-
     document.getElementById("status").innerText = "Logged out.";
-
     const sel1 = document.getElementById("mainDeckSelect");
-
     const sel2 = document.getElementById("savedDecks");
-
     if (sel1) sel1.innerHTML = `<option value="">-- Select Deck --</option>`;
-
     if (sel2) sel2.innerHTML = `<option value="">-- Select Deck --</option>`;
-
   }).catch(err => {
-
     document.getElementById("status").innerText = err.message;
-
   });
-
 }
-
 auth.onAuthStateChanged(user => {
-
   const loginContainer = document.querySelector(".container");
-
   const userInfoDiv = document.getElementById("userInfo");
-
   if (!loginContainer || !userInfoDiv) return;
-
   if (user) {
-
     loginContainer.style.display = "none";
-
     userInfoDiv.innerHTML = `<p>Logged in as <strong>${user.email}</strong></p>
-
       <button class="small-button" onclick="logout()">Logout</button>`;
-
     loadUserDecks();
-
     loadSavedDecks();
-
   } else {
-
     loginContainer.style.display = "block";
-
     userInfoDiv.innerHTML = "";
-
   }
-
 });
-
 window.login = login; window.signup = signup; window.logout = logout;
-
-
-
 function loadUserDecks() {
-
   const deckSelect = document.getElementById("mainDeckSelect");
-
   if (!deckSelect) return;
-
   deckSelect.innerHTML = `<option value="">-- Select Deck --</option>`;
-
   const user = auth.currentUser;
-
   if (!user) return;
-
   db.collection("decks").where("owner", "==", user.uid).get().then(snapshot => {
-
     snapshot.forEach(doc => {
-
       const d = doc.data();
-
       const option = document.createElement("option");
-
       option.value = doc.id;
-
       option.textContent = `${d.name} (${d.format})`;
-
       deckSelect.appendChild(option);
-
     });
-
   }).catch(console.error);
-
 }
-
 window.loadUserDecks = loadUserDecks;
 
-
-
 function loadSavedDecks() {
-
   const user = auth.currentUser;
-
   if (!user) return;
-
   const select = document.getElementById("savedDecks");
-
   if (!select) return;
-
   select.innerHTML = `<option value="">-- Select Deck --</option>`;
-
   db.collection("decks").where("owner", "==", user.uid).get().then(snapshot => {
-
     snapshot.forEach(doc => {
-
       const d = doc.data();
-
       const opt = document.createElement("option");
-
       opt.value = doc.id;
-
       opt.textContent = d.name;
-
       select.appendChild(opt);
-
     });
-
   }).catch(console.error);
-
 }
-
 window.loadSavedDecks = loadSavedDecks;
-
-
-
 function saveDeck() {
-
   const name = document.getElementById("deckNameInput").value.trim();
-
   const format = document.getElementById("deckFormatSelect").value;
-
   if (!name || !format) { alert("Enter deck name and select format."); return; }
-
   currentDeck.name = name; currentDeck.format = format;
-
   const user = auth.currentUser; if (!user) return alert("Not logged in.");
-
-  if (currentDeck.id) {
-
+   if (currentDeck.id) {
     db.collection("decks").doc(currentDeck.id).set({ owner:user.uid, name, format, cards: currentDeck.cards })
-
       .then(()=>{ alert("Deck updated!"); loadSavedDecks(); }).catch(console.error);
-
   } else {
-
     db.collection("decks").add({ owner:user.uid, name, format, cards: currentDeck.cards })
-
       .then(()=>{ alert("Deck saved!"); loadSavedDecks(); }).catch(console.error);
-
   }
-
 }
-
 window.saveDeck = saveDeck;
-
-
-
 function loadSelectedDeck() {
-
   const id = document.getElementById("savedDecks").value;
-
   if (!id) return;
-
   db.collection("decks").doc(id).get().then(doc => {
-
     if (!doc.exists) return alert("Deck not found.");
-
     currentDeck = doc.data(); currentDeck.id = doc.id; if (!currentDeck.cards) currentDeck.cards = [];
-
     document.getElementById("deckNameInput").value = currentDeck.name || "";
-
     document.getElementById("deckFormatSelect").value = currentDeck.format || "";
-
     renderDeck();
-
   }).catch(console.error);
-
 }
-
 window.loadSelectedDeck = loadSelectedDeck;
-
-
-
 function renderDeck() {
-
   const list = document.getElementById("deckList");
-
   if (!list) return;
-
   list.innerHTML = "";
-
   currentDeck.cards.forEach((card, index) => {
-
     const li = document.createElement("li");
-
     li.innerHTML = `<span class="card-name" style="cursor:pointer; text-decoration:underline;">${card.name}</span>
-
       <button class="small-button" onclick="modifyCard(${index}, -1)">-</button>
-
-      <span>${card.qty}</span>
-
+      <span>${card.qty}</span
       <button class="small-button" onclick="modifyCard(${index}, 1)">+</button>`;
-
     const nameSpan = li.querySelector(".card-name");
-
     nameSpan.addEventListener("mouseenter", ()=> showCardPreview(card));
-
     nameSpan.addEventListener("mouseleave", hideCardPreview);
-
-    nameSpan.addEventListener("click", ()=> card.scryfall && window.open(card.scryfall, "_blank"));
-
-    list.appendChild(li);
-
-  });
-
+  nameSpan.addEventListener("click", ()=> card.scryfall && window.open(card.scryfall, "_blank"));
+list.appendChild(li);
+});
 }
-
 window.renderDeck = renderDeck;
-
-
-
 function modifyCard(index, delta) {
-
   currentDeck.cards[index].qty += delta;
-
   if (currentDeck.cards[index].qty <= 0) currentDeck.cards.splice(index,1);
-
   renderDeck();
-
 }
-
 window.modifyCard = modifyCard;
-
-
-
 function getDeckSize() {
-
   return currentDeck.cards.reduce((t,c)=> t + (c.qty||0), 0);
-
 }
-
-
-
 // =====================
-
 // Card Search (uses Scryfall responses)
-
 // =====================
-
 async function searchCards() {
-
   const query = document.getElementById("cardSearchInput").value.trim();
-
   const typeFilter = document.getElementById("cardTypeFilter").value;
-
   if (!query) return;
-
   let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`;
-
   if (typeFilter) url += `+type:${encodeURIComponent(typeFilter)}`;
-
   try {
-
     const res = await fetch(url);
-
     const data = await res.json();
-
     const resultsDiv = document.getElementById("cardSearchResults");
-
     resultsDiv.innerHTML = "";
-
     if (!data.data || data.data.length === 0) { resultsDiv.innerText = "No cards found."; return; }
-
     data.data.forEach(card => {
-
       const cardDiv = document.createElement("div");
-
       cardDiv.classList.add("search-card");
-
       cardDiv.innerHTML = `<span class="card-name" style="cursor:pointer; text-decoration:underline;">${card.name}</span>
-
         <button>Add</button>`;
-
       const nameSpan = cardDiv.querySelector(".card-name");
-
       nameSpan.addEventListener("mouseenter", ()=> showCardPreview({
-
         name: card.name,
-
         image: card.image_uris ? card.image_uris.normal : ""
-
       }));
-
       nameSpan.addEventListener("mouseleave", hideCardPreview);
-
       cardDiv.querySelector("button").addEventListener("click", ()=> {
-
         const existing = currentDeck.cards.find(c=> c.name === card.name);
-
         if (existing) existing.qty++;
-
         else currentDeck.cards.push({
-
           name: card.name,
-
           qty: 1,
-
           image: card.image_uris ? card.image_uris.normal : "",
-
           scryfall: card.scryfall_uri,
-
           scryfallId: card.id,
-
           type_line: card.type_line || "Unknown",
-
           mana_cost: card.mana_cost || ""
-
         });
-
         renderDeck();
-
       });
-
       resultsDiv.appendChild(cardDiv);
-
     });
-
   } catch (err) { console.error(err); }
-
 }
-
 window.searchCards = searchCards;
-
-
 
 // =====================
 
 // Deck Legality (unchanged logic)
-
 async function checkDeckLegality() {
-
   const format = document.getElementById("menuButton").innerText.replace(' ▾','');
-
   const deckSize = getDeckSize();
-
   if (!format) { alert("Select a format on the main screen."); document.getElementById("playButton").disabled = true; return false; }
-
   if (format === "Booster Draft") { document.getElementById("playButton").disabled = false; return true; }
-
   if ((format === "Commander" && deckSize !== 100) || (format !== "Commander" && deckSize < 60)) {
-
     const req = format === "Commander" ? 100 : 60;
-
     alert(`Deck must have ${req} cards. Currently: ${deckSize}`);
-
     document.getElementById("playButton").disabled = true;
-
     return false;
-
   }
-
   const illegal = [];
 
   for (let c of currentDeck.cards) {
