@@ -446,7 +446,7 @@ window.checkDeckLegality = checkDeckLegality;
 // =====================
 // Start Game
 // =====================
-sync function ensureTypeLines(deck) {
+async function ensureTypeLines(deck) {
     for (let card of deck) {
         if (!card.type_line || card.type_line === "Unknown") {
             try {
