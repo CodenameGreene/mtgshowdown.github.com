@@ -540,10 +540,9 @@ function isLand(card) {
 }
 
 function isPermanent(card) {
-    // Permanents: land, creature, artifact, enchantment, planeswalker
-    return /land|creature|artifact|enchantment|planeswalker/i.test(card.type_line || "");
+    const typeLine = card.type_line || "";
+    return /creature|artifact|enchantment|planeswalker/i.test(typeLine) || isLand(card);
 }
-
 function getCardManaCost(card) {
     if (!card.mana_cost) return 0;
     const matches = card.mana_cost.match(/\{[^}]+\}/g);
