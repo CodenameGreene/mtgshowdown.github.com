@@ -473,27 +473,39 @@ function renderPlayScreen() {
     const manaDiv = document.getElementById("manaCount");
     const turnDiv = document.getElementById("turnCounter");
 
+    if (!handDiv || !battlefieldDiv || !manaDiv || !turnDiv) return;
+
+    // Clear previous content
     handDiv.innerHTML = "";
     battlefieldDiv.innerHTML = "";
 
-    // Display hand
+    // --- Render Hand ---
     player.hand.forEach((card, index) => {
         const img = document.createElement("img");
-        img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+        img.src = card.image || 
+            `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
         img.classList.add("card");
+        img.style.cursor = "pointer";
+
+        // Click to play
         img.onclick = () => playCard(index);
-        img.onmouseenter = () => showCardPreview(card.name);
+
+        // Hover preview
+        img.onmouseenter = () => showCardPreview(card);
         img.onmouseleave = hideCardPreview;
+
         handDiv.appendChild(img);
     });
 
-    // Display battlefield
+    // --- Render Battlefield ---
     player.battlefield.forEach((card, index) => {
         const img = document.createElement("img");
-        img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+        img.src = card.image || 
+            `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
         img.classList.add("card", "battlefield-card");
+        img.style.cursor = isLand(card) ? "pointer" : "default";
 
-        // Rotate and gray out tapped lands
+        // Visual for tapped lands
         if (card.isTapped) {
             img.style.transform = "rotate(90deg)";
             img.style.filter = "grayscale(70%)";
@@ -502,18 +514,37 @@ function renderPlayScreen() {
             img.style.filter = "none";
         }
 
-        // Tap land if clicked
+        // Click to tap land
         img.onclick = () => {
             if (isLand(card)) tapCard(index);
         };
 
         // Hover preview
         img.onmouseenter = () => showCardPreview(card);
-         img.onmouseleave = hideCardPreview;
+        img.onmouseleave = hideCardPreview;
 
         battlefieldDiv.appendChild(img);
     });
 
+    // --- Update Mana and Turn ---
+    const untappedLands = player.battlefield.filter(c => isLand(c) && !c.isTapped).length;
+    manaDiv.innerText = `Mana: ${untappedLands}`;
+    turnDiv.innerText = `Turn: ${player.turn}`;
+
+    // --- End Turn Button ---
+    let endTurnContainer = document.getElementById("endTurnContainer");
+    if (!endTurnContainer) {
+        endTurnContainer = document.createElement("div");
+        endTurnContainer.id = "endTurnContainer";
+        document.getElementById("playScreen").appendChild(endTurnContainer);
+    }
+    endTurnContainer.innerHTML = ""; // Clear previous button
+    const endTurnBtn = document.createElement("button");
+    endTurnBtn.innerText = "End Turn";
+    endTurnBtn.classList.add("end-turn-btn");
+    endTurnBtn.onclick = endTurn;
+    endTurnContainer.appendChild(endTurnBtn);
+}
     // Update info
     manaDiv.innerText = `Mana: ${player.manaPool}`;
     turnDiv.innerText = `Turn: ${player.turn}`;
