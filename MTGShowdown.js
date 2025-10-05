@@ -33,13 +33,14 @@ let opponent = {
 // =====================
 // Utilities
 // =====================
-
 function changeMenuLabel(label) {
   document.getElementById("menuButton").innerText = label + " ▾";
 }
+
 function toggleDropdown() {
   document.getElementById("formatDropdown").classList.toggle("show");
 }
+
 window.changeMenuLabel = changeMenuLabel;
 window.toggleDropdown = toggleDropdown;
 
@@ -57,16 +58,18 @@ function showDeckBuilder() {
   document.getElementById("mainScreen").style.display = "none";
   document.getElementById("deckBuilder").style.display = "block";
 }
+
 function returnToMain() {
   document.getElementById("mainScreen").style.display = "block";
   document.getElementById("deckBuilder").style.display = "none";
   document.getElementById("playScreen").style.display = "none";
 }
+
 window.showDeckBuilder = showDeckBuilder;
 window.returnToMain = returnToMain;
 
 // =====================
-// Deck selection (exposed for HTML onchange)
+// Deck selection
 // =====================
 function mainScreenDeckChanged() {
   const deckId = document.getElementById("mainDeckSelect").value;
@@ -96,9 +99,8 @@ function updatePlayButton() {
 window.updatePlayButton = updatePlayButton;
 
 // =====================
-// Auth & deck saving/loading (unchanged logic, just wired up)
+// Auth & deck saving/loading
 // =====================
-
 function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -113,6 +115,7 @@ function login() {
       document.getElementById("status").innerText = error.message;
     });
 }
+
 function signup() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -127,6 +130,7 @@ function signup() {
       document.getElementById("status").innerText = error.message;
     });
 }
+
 function logout() {
   auth.signOut().then(() => {
     document.getElementById("status").innerText = "Logged out.";
@@ -138,6 +142,7 @@ function logout() {
     document.getElementById("status").innerText = err.message;
   });
 }
+
 auth.onAuthStateChanged(user => {
   const loginContainer = document.querySelector(".container");
   const userInfoDiv = document.getElementById("userInfo");
@@ -153,7 +158,10 @@ auth.onAuthStateChanged(user => {
     userInfoDiv.innerHTML = "";
   }
 });
-window.login = login; window.signup = signup; window.logout = logout;
+
+window.login = login;
+window.signup = signup;
+window.logout = logout;
 
 function loadUserDecks() {
   const deckSelect = document.getElementById("mainDeckSelect");
@@ -220,6 +228,9 @@ function loadSelectedDeck() {
 }
 window.loadSelectedDeck = loadSelectedDeck;
 
+// =====================
+// Deck rendering & modification
+// =====================
 function renderDeck() {
   const list = document.getElementById("deckList");
   if (!list) return;
@@ -249,9 +260,8 @@ window.modifyCard = modifyCard;
 function getDeckSize() {
   return currentDeck.cards.reduce((t,c)=> t + (c.qty||0), 0);
 }
-
 // =====================
-// Card Search (uses Scryfall responses)
+// Card Search (Scryfall API)
 // =====================
 async function searchCards() {
   const query = document.getElementById("cardSearchInput").value.trim();
@@ -265,6 +275,7 @@ async function searchCards() {
     const resultsDiv = document.getElementById("cardSearchResults");
     resultsDiv.innerHTML = "";
     if (!data.data || data.data.length === 0) { resultsDiv.innerText = "No cards found."; return; }
+
     data.data.forEach(card => {
       const cardDiv = document.createElement("div");
       cardDiv.classList.add("search-card");
@@ -297,7 +308,8 @@ async function searchCards() {
 window.searchCards = searchCards;
 
 // =====================
-// Deck Legality (unchanged logic)
+// Deck Legality
+// =====================
 async function checkDeckLegality() {
   const format = document.getElementById("menuButton").innerText.replace(' ▾','');
   const deckSize = getDeckSize();
@@ -324,9 +336,9 @@ async function checkDeckLegality() {
 window.checkDeckLegality = checkDeckLegality;
 
 // =====================
-// Start Game: ensure type_lines & mana_cost present
+// Start Game
+// =====================
 async function ensureTypeLines(deck) {
-  // deck is array of card objects; if missing scryfallId prefer fetch by name
   for (let card of deck) {
     if ((!card.type_line || card.type_line === "Unknown") || card.mana_cost === undefined) {
       try {
@@ -341,9 +353,7 @@ async function ensureTypeLines(deck) {
         if (data) {
           card.type_line = data.type_line || card.type_line || "Unknown";
           card.mana_cost = card.mana_cost || data.mana_cost || "";
-          // prefer the normal image if available
           card.image = card.image || data.image_uris?.normal || card.image || "";
-          // store id if available
           card.scryfallId = card.scryfallId || data.id;
         } else {
           card.type_line = card.type_line || "Unknown";
@@ -360,7 +370,6 @@ async function ensureTypeLines(deck) {
 }
 
 function shuffle(array) {
-  // Fisher-Yates - strong shuffle
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
@@ -385,13 +394,14 @@ async function startGame() {
   renderPlayScreen();
 }
 window.startGame = startGame;
+
 function goToPlayScreen() {
   const deckSelect = document.getElementById("mainDeckSelect");
-  if (!deckSelect || !deckSelect.value) { alert("Please select a deck from the main screen first!"); return; }
+  if (!deckSelect || !deckSelect.value) { alert("Please select a deck first!"); return; }
   const selectedDeckId = deckSelect.value;
   db.collection("decks").doc(selectedDeckId).get()
     .then(doc => {
-      if (!doc.exists) return alert("Selected deck not found.");
+      if (!doc.exists) return alert("Deck not found.");
       currentDeck = doc.data(); currentDeck.id = doc.id; if (!currentDeck.cards) currentDeck.cards = [];
       checkDeckLegality().then(isLegal => {
         if (isLegal) {
@@ -401,43 +411,36 @@ function goToPlayScreen() {
           startGame();
         }
       });
-    }).catch(err => { console.error("Error loading deck:", err); alert("Failed to load deck!"); });
+    }).catch(err => { console.error(err); alert("Failed to load deck!"); });
 }
 window.goToPlayScreen = goToPlayScreen;
 window.playDeck = goToPlayScreen;
 
 // =====================
 // Mana parsing & helpers
+// =====================
 function parseManaCost(manaCost) {
-  // returns object {W:0,U:0,B:0,R:0,G:0,C:0}
   const mana = { W:0, U:0, B:0, R:0, G:0, C:0 };
   if (!manaCost) return mana;
-  // match {X} tokens
   const tokens = manaCost.match(/\{([^}]+)\}/g) || [];
   for (let t of tokens) {
     const sym = t.replace(/[{}]/g, '').trim();
-    // numeric generic like "3"
-    if (/^\d+$/.test(sym)) {
-      mana.C += Number(sym);
-    } else {
-      // consider only single-letter color symbols W U B R G
+    if (/^\d+$/.test(sym)) mana.C += Number(sym);
+    else {
       const letter = sym[0].toUpperCase();
       if (["W","U","B","R","G"].includes(letter)) mana[letter]++;
-      else mana.C++; // fallback: treat unknown as colorless
+      else mana.C++;
     }
   }
   return mana;
 }
 
-// When player clicks a land on battlefield, call this with its index
 async function tapLandForManaByIndex(index) {
   const land = player.battlefield[index];
   if (!land || land.isTapped) return;
-
   land.isTapped = true;
-  const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
+  const pool = player.manaPool;
 
-  // Try to fill in produced_mana if not already stored
   if (!land.produced_mana) {
     try {
       const data = await fetch(`https://api.scryfall.com/cards/${land.scryfallId || `named?exact=${encodeURIComponent(land.name)}`}`)
@@ -449,21 +452,12 @@ async function tapLandForManaByIndex(index) {
     }
   }
 
-  // If Scryfall data says what it produces
   if (Array.isArray(land.produced_mana) && land.produced_mana.length > 0) {
-    if (land.produced_mana.length === 1) {
-      const color = land.produced_mana[0];
-      pool[color] = (pool[color] || 0) + 1;
-      console.log(`${land.name} produced ${color} mana`);
-    } else {
-      // Multi-color land (e.g., shockland, triome)
-      const choice = prompt(`Choose mana color for ${land.name}:\n${land.produced_mana.join(", ")}`);
-      const selected = (land.produced_mana.includes(choice?.toUpperCase())) ? choice.toUpperCase() : land.produced_mana[0];
-      pool[selected] = (pool[selected] || 0) + 1;
-      console.log(`${land.name} produced ${selected} mana`);
-    }
+    const color = land.produced_mana.length === 1 
+      ? land.produced_mana[0]
+      : prompt(`Choose mana color for ${land.name}:\n${land.produced_mana.join(", ")}`) || land.produced_mana[0];
+    pool[color] = (pool[color] || 0) + 1;
   } else {
-    // fallback: basic or unknown land
     const tl = (land.type_line || "").toLowerCase();
     if (tl.includes("plains")) pool.W++;
     else if (tl.includes("island")) pool.U++;
@@ -476,39 +470,37 @@ async function tapLandForManaByIndex(index) {
   player.manaPool = pool;
   renderPlayScreen();
 }
+
+// =====================
+// Card type & mana helpers
+// =====================
 function getCardSection(card) {
   if (!card.type_line) return "Other";
-  const type = card.type_line;
-
-  if (type.includes("Land")) return "Land";
-  if (type.includes("Creature")) return "Creature";
-  if (type.includes("Enchantment")) return "Enchantment";
-  if (type.includes("Artifact")) return "Artifact";
-  if (type.includes("Planeswalker")) return "Planeswalker";
+  const t = card.type_line;
+  if (t.includes("Land")) return "Land";
+  if (t.includes("Creature")) return "Creature";
+  if (t.includes("Enchantment")) return "Enchantment";
+  if (t.includes("Artifact")) return "Artifact";
+  if (t.includes("Planeswalker")) return "Planeswalker";
   return "Other";
 }
-// Check if pool can pay required mana (colored amounts must match, generic can use anything)
+
 function canPayMana(cost) {
   const pool = {...player.manaPool};
-  // check colored requirements
   for (const col of ["W","U","B","R","G"]) {
-    const need = cost[col] || 0;
-    if (need > (pool[col] || 0)) return false;
-    pool[col] -= need;
+    if ((cost[col]||0) > (pool[col]||0)) return false;
+    pool[col] -= cost[col]||0;
   }
-  // generic / colorless (C) must be paid from any remaining mana
-  const genericNeed = cost.C || 0;
-  let available = pool.W + pool.U + pool.B + pool.R + pool.G + pool.C;
-  return available >= genericNeed;
+  let generic = cost.C||0;
+  let available = pool.W+pool.U+pool.B+pool.R+pool.G+pool.C;
+  return available >= generic;
 }
 
-// pay mana from pool (assumes canPayMana returned true)
 function payMana(cost) {
   for (const col of ["W","U","B","R","G"]) {
     const use = Math.min(player.manaPool[col] || 0, cost[col] || 0);
     player.manaPool[col] -= use;
   }
-  // generic cost: consume any mana from colors first then C
   let generic = cost.C || 0;
   const order = ["W","U","B","R","G","C"];
   for (const sym of order) {
@@ -517,362 +509,83 @@ function payMana(cost) {
       generic--;
     }
   }
-}
-
-// Try to auto-tap untapped lands until canPayMana(cost) or no lands left
-// Strategy: tap lands that produce needed colors first, then any land for generic
-function playLand(card) {
-  const entersTapped = card.entersTapped || false;
-  player.battlefield.push({ ...card, isTapped: entersTapped });
-  player.hand.splice(player.hand.indexOf(card), 1);
-  player.landsPlayed++;
-  renderPlayScreen();
-}
-
-function autoTapLandsForCost(cost) {
-  if (canPayMana(cost)) return true;
-
-  const untapped = player.battlefield.map((c,i) => ({c,i}))
-    .filter(x => isLand(x.c) && !x.c.isTapped);
-
-  const tapOneOfColor = (colorChars) => {
-    for (let i=0;i<untapped.length;i++) {
-      const ent = untapped[i];
-      const tl = (ent.c.type_line || "").toLowerCase();
-      const producedColor = tl.includes("plains") ? "W"
-                         : tl.includes("island") ? "U"
-                         : tl.includes("swamp") ? "B"
-                         : tl.includes("mountain") ? "R"
-                         : tl.includes("forest") ? "G" : "C";
-      if (colorChars.includes(producedColor)) {
-        tapLandForManaByIndex(ent.i);
-        untapped.splice(i,1);
-        return true;
-      }
-    }
-    return false;
-  };
-
-  // First satisfy colored requirements
-  for (const col of ["W","U","B","R","G"]) {
-    const need = (cost[col] || 0) - (player.manaPool[col] || 0);
-    for (let t=0; t<need; t++) tapOneOfColor([col]);
-  }
-
-  // Tap remaining lands for generic mana
-  const adjustedCost = {...cost};
-  while (!canPayMana(adjustedCost) && untapped.length > 0) {
-    const ent = untapped.shift();
-    tapLandForManaByIndex(ent.i);
-  }
-
-  payMana(adjustedCost);
-  return true;
-}
-  // First satisfy colored requirements by tapping lands that produce those colors
-  for (const col of ["W","U","B","R","G"]) {
-    const need = (cost[col] || 0) - (player.manaPool[col] || 0);
-    for (let t=0; t<need; t++) {
-      const tapped = tapOneOfColor([col]);
-      if (!tapped) break;
-    }
-  }
-
-  // If still can't pay, tap any remaining lands (for generic)\
-  const adjustedCost = getCreatureCost(cost);
-  while (!canPayMana(adjustedCost) && untapped.length > 0) {
-    // tap the first remaining
-    const ent = untapped.shift();
-    tapLandForManaByIndex(ent.i);
-  }
-payMana(adjustedCost);
-}
-function moveToGraveyard(card, from) {
-  // from: "hand" | "battlefield"
-  player.graveyard.push(card);
-  if (from === "hand") player.hand = player.hand.filter(c => c !== card);
-  else if (from === "battlefield") player.battlefield = player.battlefield.filter(c => c !== card);
   renderPlayScreen();
 }
 
 // =====================
-// Card rules helpers
-function isLand(card) {
-  return !!(card && card.type_line && card.type_line.toLowerCase().includes("land"));
-}
-function isPermanent(card) {
-  if (!card || !card.type_line) return false;
-  const t = card.type_line.toLowerCase();
-  return t.includes("creature") || t.includes("artifact") || t.includes("enchantment") || t.includes("planeswalker") || t.includes("land");
-}
-
-function getCardManaCostCount(card) {
-  if (!card || !card.mana_cost) return 0;
-  const matches = card.mana_cost.match(/\{[^}]+\}/g);
-  return matches ? matches.length : 0;
-}
-function getCreatureCost(card) {
-  let cost = parseManaCost(card.mana_cost);
-  if (card.affinity) {
-    // card.affinity = {type:"artifact"}
-    const count = player.battlefield.filter(c => c.type_line.toLowerCase().includes(card.affinity.type)).length;
-    cost.C = Math.max(0, cost.C - count); // reduce generic mana cost
-  }
-  return cost;
-}
-
+// Card preview
 // =====================
-// Play logic: play a card from hand
-function playCard(index) {
-  const card = player.hand[index];
-  if (!card) return;
-  console.log("Attempting to play:", card.name, "type_line:", card.type_line, "mana_cost:", card.mana_cost);
-
-  if (isLand(card)) {
-    if (player.landsPlayed >= 1) { alert("You already played a land this turn!"); return; }
-    player.hand.splice(index,1);
-    player.battlefield.push({...card, isTapped:false});
-    player.landsPlayed++;
-    renderPlayScreen();
-    return;
-  }
-
-  if (!isPermanent(card)) {
-    alert("Only permanents (creature, artifact, enchantment, planeswalker) can be played to the battlefield!");
-    return;
-  }
-
-  const cost = parseManaCost(card.mana_cost || "");
-  console.log("Parsed cost:", cost);
-
-  // Try to auto-tap lands to generate mana (if needed)
-  if (!canPayMana(cost)) {
-    const tappedEnough = autoTapLandsForCost(cost);
-    if (!tappedEnough) { alert("Not enough mana! Tap lands manually or add lands."); return; }
-  }
-
-  // pay
-  payMana(cost);
-
-  // move card
-  player.hand.splice(index,1);
-  player.battlefield.push({...card, isTapped:false});
-  renderPlayScreen();
-}
-window.playCard = playCard;
-function playInstant(index) {
-  const card = player.hand[index];
-  if (!card || !card.type_line.toLowerCase().includes("instant")) return;
-  // For now, just trigger the effect placeholder
-  alert(`${card.name} resolves!`);
-  moveToGraveyard(card, "hand");
-}
-
-// tapCard for clicking land on battlefield (index)
-function tapCard(index) {
-  const card = player.battlefield[index];
-  if (!card || !isLand(card) || card.isTapped) return;
-  tapLandForManaByIndex(index);
-}
-window.tapCard = tapCard;
-function tapCreatureForMana(index) {
-  const creature = player.battlefield[index];
-  if (!creature || !creature.type_line.toLowerCase().includes("creature")) return;
-  if (creature.isTapped) return;
-
-  creature.isTapped = true;
-  const produced = creature.produced_mana || []; // array of mana symbols
-  const pool = player.manaPool;
-  produced.forEach(m => pool[m] = (pool[m] || 0) + 1);
-  player.manaPool = pool;
-  renderPlayScreen();
-}
-
-function endTurn() {
-  // Untap all permanents
-  player.battlefield.forEach(c => c.isTapped = false);
-  // draw
-  if (player.deck.length > 0) player.hand.push(player.deck.shift());
-  player.landsPlayed = 0;
-  // clear mana pool at EOT
-  player.manaPool = { W:0, U:0, B:0, R:0, G:0, C:0 };
-  player.turn++;
-  renderPlayScreen();
-}
-window.endTurn = endTurn;
-
-// =====================
-// Render play screen (fixed)
-function renderPlayScreen() {
-  const handDiv = document.getElementById("hand");
-  const battlefieldDiv = document.getElementById("battlefield");
-  const opponentField = document.getElementById("opponentBattlefield");
-  const manaDiv = document.getElementById("manaCount");
-  const turnDiv = document.getElementById("turnCounter");
-
-  if (!handDiv || !battlefieldDiv || !opponentField || !manaDiv || !turnDiv) return;
-
-  // Clear everything
-  handDiv.innerHTML = "";
-  battlefieldDiv.innerHTML = "";
-  opponentField.innerHTML = "";
-
-  // ===== HAND =====
-  player.hand.forEach((card, idx) => {
-    const img = document.createElement("img");
-    img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-    img.className = "card";
-    img.style.cursor = "pointer";
-    img.onclick = () => playCard(idx);
-    img.onmouseenter = () => showCardPreview(card);
-    img.onmouseleave = hideCardPreview;
-    handDiv.appendChild(img);
-  });
-
-  // ===== PLAYER BATTLEFIELD =====
-  const sections = {
-    Land: [],
-    Creature: [],
-    Enchantment: [],
-    Artifact: [],
-    Planeswalker: [],
-    Other: []
-  };
-
-  player.battlefield.forEach(card => {
-    const sec = getCardSection(card);
-    sections[sec].push(card);
-  });
-
-  Object.entries(sections).forEach(([title, cards]) => {
-    if (cards.length === 0) return;
-
-    const secDiv = document.createElement("div");
-    secDiv.className = "battlefield-section";
-    const label = document.createElement("div");
-    label.className = "battlefield-label";
-    label.innerText = title;
-    secDiv.appendChild(label);
-
-    const row = document.createElement("div");
-    row.className = "battlefield-row";
-
-    cards.forEach(card => {
-      const img = document.createElement("img");
-      img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-      img.className = "card battlefield-card";
-      img.style.transform = card.isTapped ? "rotate(90deg)" : "rotate(0deg)";
-      img.style.filter = card.isTapped ? "grayscale(70%)" : "none";
-
-      img.onmouseenter = () => showCardPreview(card);
-      img.onmouseleave = hideCardPreview;
-
-      if (isLand(card)) {
-        img.style.cursor = "pointer";
-        img.onclick = () => tapLandForManaByIndex(player.battlefield.indexOf(card));
-      }
-
-      row.appendChild(img);
-    });
-
-    secDiv.appendChild(row);
-    battlefieldDiv.appendChild(secDiv);
-  });
-
-  // ===== OPPONENT FIELD =====
-  if (opponent && opponent.battlefield) {
-    const oppSections = {
-      Land: [],
-      Creature: [],
-      Enchantment: [],
-      Artifact: [],
-      Planeswalker: [],
-      Other: []
-    };
-
-    opponent.battlefield.forEach(card => {
-      const sec = getCardSection(card);
-      oppSections[sec].push(card);
-    });
-
-    Object.entries(oppSections).forEach(([title, cards]) => {
-      if (cards.length === 0) return;
-
-      const secDiv = document.createElement("div");
-      secDiv.className = "battlefield-section opponent-section";
-      const label = document.createElement("div");
-      label.className = "battlefield-label";
-      label.innerText = title;
-      secDiv.appendChild(label);
-
-      const row = document.createElement("div");
-      row.className = "battlefield-row";
-
-      cards.forEach(card => {
-        const img = document.createElement("img");
-        img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-        img.className = "card battlefield-card opponent-card";
-        img.onmouseenter = () => showCardPreview(card);
-        img.onmouseleave = hideCardPreview;
-        row.appendChild(img);
-      });
-
-      secDiv.appendChild(row);
-      opponentField.appendChild(secDiv);
-    });
-    const graveyardDiv = document.getElementById("graveyard");
-    graveyardDiv.innerHTML = "";
-     player.graveyard.forEach(c => {
-    const img = document.createElement("img");
-     img.src = c.image;
-    img.className = "card small-card";
-    graveyardDiv.appendChild(img);
-  });
-
-  // ===== MANA + TURN =====
-  const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
-  manaDiv.innerText = `Mana: W:${pool.W} U:${pool.U} B:${pool.B} R:${pool.R} G:${pool.G} C:${pool.C}`;
-  turnDiv.innerText = `Turn: ${player.turn}`;
-
-  // ===== END TURN BUTTON =====
-  let endTurnContainer = document.getElementById("endTurnContainer");
-  if (!endTurnContainer) {
-    endTurnContainer = document.createElement("div");
-    endTurnContainer.id = "endTurnContainer";
-    document.getElementById("playScreen").appendChild(endTurnContainer);
-  }
-  endTurnContainer.innerHTML = "";
-  const btn = document.createElement("button");
-  btn.className = "small-button end-turn-btn";
-  btn.innerText = "End Turn";
-  btn.onclick = endTurn;
-  endTurnContainer.appendChild(btn);
-}
-
-// =====================
-// Hover preview helpers
 function showCardPreview(card) {
-  const previewDiv = document.getElementById("hoverPreview");
-  const previewImg = document.getElementById("hoverPreviewImg");
-  if (!previewDiv || !previewImg || !card) return;
-  const src = card.image || (card.name ? `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image` : "");
-  if (!src) return;
-  previewImg.src = src;
-  previewDiv.style.display = "block";
-  document.onmousemove = (e) => {
-    previewDiv.style.left = (e.pageX + 20) + "px";
-    previewDiv.style.top = (e.pageY + 20) + "px";
-  };
-}
-function hideCardPreview() {
-  const previewDiv = document.getElementById("hoverPreview");
-  const previewImg = document.getElementById("hoverPreviewImg");
-  if (!previewDiv || !previewImg) return;
-  previewDiv.style.display = "none";
-  previewImg.src = "";
-  document.onmousemove = null;
+  const div = document.getElementById("cardPreview");
+  if (!div) return;
+  div.style.display = "block";
+  if (card.image) div.innerHTML = `<img src="${card.image}" style="width:200px;">`;
+  else div.innerText = card.name;
 }
 
+function hideCardPreview() {
+  const div = document.getElementById("cardPreview");
+  if (!div) return;
+  div.style.display = "none";
+}
 window.showCardPreview = showCardPreview;
 window.hideCardPreview = hideCardPreview;
+
+// =====================
+// Play screen rendering
+// =====================
+function renderPlayScreen() {
+  const handDiv = document.getElementById("handArea");
+  const bfDiv = document.getElementById("battlefieldArea");
+  if (!handDiv || !bfDiv) return;
+
+  handDiv.innerHTML = "";
+  player.hand.forEach((c,i) => {
+    const cardDiv = document.createElement("div");
+    cardDiv.className = "card";
+    cardDiv.innerText = c.name;
+    cardDiv.addEventListener("mouseenter", ()=> showCardPreview(c));
+    cardDiv.addEventListener("mouseleave", hideCardPreview);
+    handDiv.appendChild(cardDiv);
+  });
+
+  bfDiv.innerHTML = "";
+  player.battlefield.forEach((c,i) => {
+    const cardDiv = document.createElement("div");
+    cardDiv.className = "card";
+    cardDiv.innerText = c.name + (c.isTapped?" (T)":"");
+    cardDiv.addEventListener("mouseenter", ()=> showCardPreview(c));
+    cardDiv.addEventListener("mouseleave", hideCardPreview);
+    if (getCardSection(c)==="Land" && !c.isTapped) {
+      cardDiv.style.cursor="pointer";
+      cardDiv.onclick = ()=> tapLandForManaByIndex(i);
+    }
+    bfDiv.appendChild(cardDiv);
+  });
+
+  const poolDiv = document.getElementById("manaPool");
+  if (poolDiv) poolDiv.innerText = `Mana Pool: ${Object.entries(player.manaPool).map(([k,v])=> v>0?`${k}:${v}`:"").filter(Boolean).join(", ")}`;
+}
+window.renderPlayScreen = renderPlayScreen;
+
+// =====================
+// Auto-tap lands for mana (for simple spells)
+// =====================
+function autoTapLandsForCost(cost) {
+  let needed = {...cost};
+  player.battlefield.forEach((c,i)=>{
+    if (getCardSection(c)!=="Land" || c.isTapped) return;
+    for (const col of c.produced_mana||["W","U","B","R","G"]) {
+      if (needed[col]>0) {
+        c.isTapped = true;
+        player.manaPool[col] = (player.manaPool[col]||0)+1;
+        needed[col]--;
+        break;
+      }
+    }
+  });
+  renderPlayScreen();
+}
+window.autoTapLandsForCost = autoTapLandsForCost;
+
 
