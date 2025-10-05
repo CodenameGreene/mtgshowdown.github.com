@@ -1023,111 +1023,48 @@ function renderPlayScreen() {
       img.style.transform = card.isTapped ? "rotate(90deg)" : "rotate(0deg)";
 
       img.style.filter = card.isTapped ? "grayscale(70%)" : "none";
-
-
-
       img.onmouseenter = () => showCardPreview(card);
-
       img.onmouseleave = hideCardPreview;
-
-
-
       if (isLand(card)) {
-
         img.style.cursor = "pointer";
-
         img.onclick = () => tapLandForManaByIndex(player.battlefield.indexOf(card));
-
       }
-
-
-
       row.appendChild(img);
-
     });
-
-
-
     secDiv.appendChild(row);
-
     battlefieldDiv.appendChild(secDiv);
-
   });
-
-
-
   // ===== OPPONENT FIELD =====
-
   if (opponent && opponent.battlefield) {
-
     const oppSections = {
-
       Land: [],
-
       Creature: [],
-
       Enchantment: [],
-
       Artifact: [],
-
       Planeswalker: [],
-
       Other: []
-
     };
-
-
-
     opponent.battlefield.forEach(card => {
-
       const sec = getCardSection(card);
-
       oppSections[sec].push(card);
-
     });
-
-
-
-    Object.entries(oppSections).forEach(([title, cards]) => {
-
-      if (cards.length === 0) return;
-
-
-
+     Object.entries(oppSections).forEach(([title, cards]) => {
+     if (cards.length === 0) return;
       const secDiv = document.createElement("div");
-
       secDiv.className = "battlefield-section opponent-section";
-
       const label = document.createElement("div");
-
       label.className = "battlefield-label";
-
       label.innerText = title;
-
       secDiv.appendChild(label);
-
-
-
       const row = document.createElement("div");
-
       row.className = "battlefield-row";
-
-
-
       cards.forEach(card => {
-
         const img = document.createElement("img");
-
         img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-
         img.className = "card battlefield-card opponent-card";
-
         img.onmouseenter = () => showCardPreview(card);
-
         img.onmouseleave = hideCardPreview;
-
         row.appendChild(img);
-
       });
       secDiv.appendChild(row);
       opponentField.appendChild(secDiv);
@@ -1150,7 +1087,6 @@ function renderPlayScreen() {
     endTurnContainer = document.createElement("div");
     endTurnContainer.id = "endTurnContainer";
     document.getElementById("playScreen").appendChild(endTurnContainer);
-
   }
   endTurnContainer.innerHTML = "";
   const btn = document.createElement("button");
@@ -1158,12 +1094,9 @@ function renderPlayScreen() {
   btn.innerText = "End Turn";
   btn.onclick = endTurn;
   endTurnContainer.appendChild(btn);
-
 }
 // =====================
-
 // Hover preview helpers
-
 function showCardPreview(card) {
   const previewDiv = document.getElementById("hoverPreview");
   const previewImg = document.getElementById("hoverPreviewImg");
@@ -1185,7 +1118,5 @@ function hideCardPreview() {
   previewImg.src = "";
   document.onmousemove = null;
 }
-
 window.showCardPreview = showCardPreview;
-
 window.hideCardPreview = hideCardPreview;
