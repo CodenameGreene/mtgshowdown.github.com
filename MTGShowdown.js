@@ -474,7 +474,10 @@ async function startGame() {
         for (let i = 0; i < c.qty; i++) fullDeck.push({ ...c });
     });
 
+    // Ensure all cards have a type_line
     fullDeck = await ensureTypeLines(fullDeck);
+
+    // Shuffle deck
     fullDeck.sort(() => Math.random() - 0.5);
 
     player.deck = fullDeck;
