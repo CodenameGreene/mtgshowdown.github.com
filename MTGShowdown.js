@@ -728,21 +728,22 @@ function endTurn() {
 function showCardPreview(card) {
     const previewDiv = document.getElementById("hoverPreview");
     const previewImg = document.getElementById("hoverPreviewImg");
-    if (!previewDiv || !previewImg) return;
+    if (!previewDiv || !previewImg || !card) return;
 
-    // Use card.image if available, else fallback to Scryfall
-    let imgSrc = card.image || (card.name ? `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image` : "");
+    const imgSrc = card.image || 
+        (card.name ? `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image` : "");
     if (!imgSrc) return;
 
     previewImg.src = imgSrc;
     previewDiv.style.display = "block";
 
-    // Move the preview to follow mouse
     document.onmousemove = (e) => {
         previewDiv.style.left = e.pageX + 20 + "px";
         previewDiv.style.top = e.pageY + 20 + "px";
     };
 }
+
+
 
 function hideCardPreview() {
     const previewDiv = document.getElementById("hoverPreview");
