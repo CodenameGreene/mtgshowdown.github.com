@@ -579,6 +579,7 @@ async function startGame() {
 
     // Flatten deck
     let fullDeck = [];
+    fullDeck = await ensureTypeLines(fullDeck);
     currentDeck.cards.forEach(c => {
         for (let i = 0; i < c.qty; i++) fullDeck.push({ ...c });
     });
