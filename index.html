@@ -114,7 +114,8 @@
   <!-- Play Screen -->
 
   <!-- Play area styled using your CSS -->
-  <div id="playScreen" style="display:none;">
+  <!-- Play Screen -->
+   <div id="playScreen" style="display:none;">
   <div id="topSection">
     <div id="opponentBattlefield" class="battlefield"></div>
   </div>
@@ -122,7 +123,11 @@
   <div id="middleSection">
     <div id="manaCount">Mana: W:0 U:0 B:0 R:0 G:0 C:0</div>
     <div id="turnCounter">Turn: 1</div>
-    <div id="endTurnContainer"></div>
+
+    <!-- End Turn button -->
+    <div id="endTurnContainer">
+      <button class="small-button end-turn-btn" onclick="endTurn()">End Turn</button>
+    </div>
   </div>
 
   <div id="bottomSection">
@@ -130,11 +135,9 @@
     <div id="hand"></div>
   </div>
 
-<div id="endTurnContainer">
-  <button class="small-button end-turn-btn" onclick="endTurn()">End Turn</button>
+  <!-- Back button -->
+  <button class="small-button" onclick="returnToMain()">Back</button>
 </div>
-<button class="small-button" onclick="returnToMain()">Back</button>
- </div>   
     
     
 
