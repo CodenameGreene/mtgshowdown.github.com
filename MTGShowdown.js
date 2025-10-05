@@ -567,6 +567,13 @@ function autoTapLandsForCost(cost) {
 
   return canPayMana(cost);
 }
+function moveToGraveyard(card, from) {
+  // from: "hand" | "battlefield"
+  player.graveyard.push(card);
+  if (from === "hand") player.hand = player.hand.filter(c => c !== card);
+  else if (from === "battlefield") player.battlefield = player.battlefield.filter(c => c !== card);
+  renderPlayScreen();
+}
 
 // =====================
 // Card rules helpers
