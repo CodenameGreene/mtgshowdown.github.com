@@ -310,3 +310,9 @@ li:hover .hover-image {
 .opponent-card {
   filter: brightness(80%);
 }
+#handArea, #battlefieldArea, #graveyard {
+  display: flex;
+  flex-wrap: wrap; /* wrap to next row if too many */
+  gap: 5px;        /* spacing between cards */
+  align-items: flex-end;
+}
