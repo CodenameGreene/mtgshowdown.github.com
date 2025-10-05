@@ -423,18 +423,25 @@ function parseManaCost(manaCost) {
 function tapLandForManaByIndex(index) {
   const land = player.battlefield[index];
   if (!land || land.isTapped) return;
+
   land.isTapped = true;
-  if (!player.manaPool) player.manaPool = { W:0, U:0, B:0, R:0, G:0, C:0 };
   const tl = (land.type_line || "").toLowerCase();
-  if (tl.includes("plains")) player.manaPool.W++;
-  else if (tl.includes("island")) player.manaPool.U++;
-  else if (tl.includes("swamp")) player.manaPool.B++;
-  else if (tl.includes("mountain")) player.manaPool.R++;
-  else if (tl.includes("forest")) player.manaPool.G++;
-  else player.manaPool.C++;
-  console.log("Tapped", land.name, "→", player.manaPool);
+  const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
+
+  // Produce mana based on land type_line
+  if (tl.includes("plains")) pool.W++;
+  else if (tl.includes("island")) pool.U++;
+  else if (tl.includes("swamp")) pool.B++;
+  else if (tl.includes("mountain")) pool.R++;
+  else if (tl.includes("forest")) pool.G++;
+  else pool.C++; // colorless or nonbasic that doesn't match any color word
+
+  player.manaPool = pool;
+
+  console.log(`Tapped ${land.name} →`, pool);
   renderPlayScreen();
 }
+
 
 // Check if pool can pay required mana (colored amounts must match, generic can use anything)
 function canPayMana(cost) {
