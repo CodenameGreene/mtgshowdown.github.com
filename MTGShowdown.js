@@ -508,6 +508,23 @@ function parseManaCost(manaCost) {
     });
     return mana;
 }
+function tapLandForMana(index) {
+    const land = player.battlefield[index];
+    if (!isLand(land) || land.isTapped) return;
+
+    const landType = land.type_line.toLowerCase();
+    let color = null;
+    if (landType.includes("plains")) color="W";
+    else if (landType.includes("island")) color="U";
+    else if (landType.includes("swamp")) color="B";
+    else if (landType.includes("mountain")) color="R";
+    else if (landType.includes("forest")) color="G";
+
+    land.isTapped = true;
+    if (color) player.manaPool[color]++;
+    else player.manaPool.C++; // generic mana for colorless lands
+    renderPlayScreen();
+}
 function isLand(card) {
     return card.type_line && card.type_line.toLowerCase().includes("land");
 }
