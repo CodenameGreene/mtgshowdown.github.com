@@ -665,6 +665,7 @@ function renderPlayScreen() {
     });
 
     // Update mana and turn
+    manaDiv.innerText = `Mana: W:${player.manaPool.W} U:${player.manaPool.U} B:${player.manaPool.B} R:${player.manaPool.R} G:${player.manaPool.G} C:${player.manaPool.C}`;
     const untappedLands = player.battlefield.filter(c => isLand(c) && !c.isTapped).length;
     manaDiv.innerText = `Mana: ${untappedLands}`;
     turnDiv.innerText = `Turn: ${player.turn}`;
