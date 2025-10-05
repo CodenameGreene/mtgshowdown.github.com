@@ -367,6 +367,7 @@ async function startGame() {
   player.landsPlayed = 0;
   player.turn = 1;
   player.manaPool = { W:0, U:0, B:0, R:0, G:0, C:0 };
+  drawHand();
   renderPlayScreen();
 }
 window.startGame = startGame;
