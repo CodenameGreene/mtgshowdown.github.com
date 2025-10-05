@@ -14,6 +14,7 @@ let player = {
   deck: [],
   hand: [],
   battlefield: [],
+  graveyard = [],
   landsPlayed: 0,
   turn: 1,
   // manaPool will be initialized when game starts
@@ -23,6 +24,7 @@ let opponent = {
   deck: [],
   hand: [],
   battlefield: [],
+  graveyard = [],
   landsPlayed: 0,
   turn: 1,
   manaPool: { W:0, U:0, B:0, R:0, G:0, C:0 }
