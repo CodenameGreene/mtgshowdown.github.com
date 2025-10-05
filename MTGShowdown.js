@@ -606,6 +606,7 @@ async function playCard(index) {
   const card = player.hand[index];
   if (!card) return;
   console.log("Attempting to play:", card.name, "type_line:", card.type_line, "mana_cost:", card.mana_cost);
+
   if (isLand(card)) {
     if (player.landsPlayed >= 1) { alert("You already played a land this turn!"); return; }
     player.hand.splice(index,1);
@@ -614,18 +615,26 @@ async function playCard(index) {
     renderPlayScreen();
     return;
   }
+
   if (!isPermanent(card)) {
     alert("Only permanents (creature, artifact, enchantment, planeswalker) can be played to the battlefield!");
     return;
   }
+
   const cost = parseManaCost(card.mana_cost || "");
   console.log("Parsed cost:", cost);
-  // Try to auto-tap lands to generate mana (if needed)
+
   if (!canPayMana(cost)) {
     const tappedEnough = await autoTapLandsForCost(cost);
     if (!tappedEnough) { alert("Not enough mana! Tap lands manually or add lands."); return; }
   }
-  // pay
+
+  // final check: if we can pay, then pay and put the card on battlefield
+  if (!canPayMana(cost)) { // safety double-check
+    alert("Not enough mana after tapping lands.");
+    return;
+  }
+
   payMana(cost);
   // move card
   player.hand.splice(index,1);
