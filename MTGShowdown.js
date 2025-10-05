@@ -420,21 +420,40 @@ function parseManaCost(manaCost) {
 }
 
 // When player clicks a land on battlefield, call this with its index
-function tapLandForManaByIndex(index) {
+async function tapLandForManaByIndex(index) {
   const land = player.battlefield[index];
   if (!land || land.isTapped) return;
 
   land.isTapped = true;
   const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
 
-  // If Scryfall data contains produced_mana
+  // Try to fill in produced_mana if not already stored
+  if (!land.produced_mana) {
+    try {
+      const data = await fetch(`https://api.scryfall.com/cards/${land.scryfallId || `named?exact=${encodeURIComponent(land.name)}`}`)
+        .then(r => r.json());
+      land.produced_mana = data.produced_mana || [];
+    } catch (err) {
+      console.warn("Failed to fetch produced_mana for", land.name, err);
+      land.produced_mana = [];
+    }
+  }
+
+  // If Scryfall data says what it produces
   if (Array.isArray(land.produced_mana) && land.produced_mana.length > 0) {
-    // If multiple possible colors (e.g., Triomes), pick first for now
-    const color = land.produced_mana[0];
-    pool[color] = (pool[color] || 0) + 1;
-    console.log(`${land.name} produced ${color} mana`);
+    if (land.produced_mana.length === 1) {
+      const color = land.produced_mana[0];
+      pool[color] = (pool[color] || 0) + 1;
+      console.log(`${land.name} produced ${color} mana`);
+    } else {
+      // Multi-color land (e.g., shockland, triome)
+      const choice = prompt(`Choose mana color for ${land.name}:\n${land.produced_mana.join(", ")}`);
+      const selected = (land.produced_mana.includes(choice?.toUpperCase())) ? choice.toUpperCase() : land.produced_mana[0];
+      pool[selected] = (pool[selected] || 0) + 1;
+      console.log(`${land.name} produced ${selected} mana`);
+    }
   } else {
-    // fallback: look for basic types or default to colorless
+    // fallback: basic or unknown land
     const tl = (land.type_line || "").toLowerCase();
     if (tl.includes("plains")) pool.W++;
     else if (tl.includes("island")) pool.U++;
@@ -447,7 +466,6 @@ function tapLandForManaByIndex(index) {
   player.manaPool = pool;
   renderPlayScreen();
 }
-
 // Check if pool can pay required mana (colored amounts must match, generic can use anything)
 function canPayMana(cost) {
   const pool = {...player.manaPool};
