@@ -521,22 +521,26 @@ function parseManaCost(manaCost) {
     });
     return mana;
 }
-function tapLandForMana(index) {
-    const land = player.battlefield[index];
-    if (!isLand(land) || land.isTapped) return;
+function tapLandForMana(card) {
+  if (card.isTapped) return;
 
-    const landType = land.type_line.toLowerCase();
-    let color = null;
-    if (landType.includes("plains")) color="W";
-    else if (landType.includes("island")) color="U";
-    else if (landType.includes("swamp")) color="B";
-    else if (landType.includes("mountain")) color="R";
-    else if (landType.includes("forest")) color="G";
+  card.isTapped = true;
 
-    land.isTapped = true;
-    if (color) player.manaPool[color]++;
-    else player.manaPool.C++; // generic mana for colorless lands
-    renderPlayScreen();
+  if (!player.manaPool) {
+    player.manaPool = { W:0, U:0, B:0, R:0, G:0, C:0 };
+  }
+
+  const type = (card.type_line || "").toLowerCase();
+
+  if (type.includes("plains")) player.manaPool.W++;
+  else if (type.includes("island")) player.manaPool.U++;
+  else if (type.includes("swamp")) player.manaPool.B++;
+  else if (type.includes("mountain")) player.manaPool.R++;
+  else if (type.includes("forest")) player.manaPool.G++;
+  else player.manaPool.C++;
+
+  console.log("Tapped land:", card.name, "→", player.manaPool);
+  renderPlayScreen(); // refresh mana display
 }
 function canPayMana(cost) {
     const pool = {...player.manaPool}; // copy
