@@ -548,42 +548,54 @@ function renderPlayScreen() {
 
   // --- Hand ---
   handDiv.innerHTML = "";
-  player.hand.forEach((c,i) => {
+  player.hand.forEach((c, i) => {
     const cardDiv = document.createElement("div");
     cardDiv.className = "card";
+
     if (c.image) {
       const img = document.createElement("img");
       img.src = c.image;
-      img.style.width = "100px"; // adjust as needed
+      img.style.width = "100px";  // hand card size
+      img.style.cursor = "pointer";
+
+      // Show preview on hover
+      img.addEventListener("mouseenter", () => showCardPreview(c));
+      img.addEventListener("mouseleave", hideCardPreview);
+
       cardDiv.appendChild(img);
     } else {
       cardDiv.innerText = c.name;
     }
-    cardDiv.addEventListener("mouseenter", ()=> showCardPreview(c));
-    cardDiv.addEventListener("mouseleave", hideCardPreview);
+
     handDiv.appendChild(cardDiv);
   });
 
   // --- Battlefield ---
   bfDiv.innerHTML = "";
-  player.battlefield.forEach((c,i) => {
+  player.battlefield.forEach((c, i) => {
     const cardDiv = document.createElement("div");
     cardDiv.className = "card";
+
     if (c.image) {
       const img = document.createElement("img");
       img.src = c.image;
-      img.style.width = "100px";
+      img.style.width = "120px";  // battlefield card size
+      img.style.cursor = "pointer";
+      if (c.isTapped) img.style.opacity = 0.6;
+
+      // Preview hover
+      img.addEventListener("mouseenter", () => showCardPreview(c));
+      img.addEventListener("mouseleave", hideCardPreview);
+
       cardDiv.appendChild(img);
     } else {
       cardDiv.innerText = c.name + (c.isTapped ? " (T)" : "");
     }
-    if (c.isTapped) cardDiv.style.opacity = 0.6; // visually show tapped
-    cardDiv.addEventListener("mouseenter", ()=> showCardPreview(c));
-    cardDiv.addEventListener("mouseleave", hideCardPreview);
-    if (getCardSection(c)==="Land" && !c.isTapped) {
-      cardDiv.style.cursor = "pointer";
-      cardDiv.onclick = ()=> tapLandForManaByIndex(i);
+
+    if (getCardSection(c) === "Land" && !c.isTapped) {
+      cardDiv.onclick = () => tapLandForManaByIndex(i);
     }
+
     bfDiv.appendChild(cardDiv);
   });
 
@@ -595,15 +607,23 @@ function renderPlayScreen() {
     if (c.image) {
       const img = document.createElement("img");
       img.src = c.image;
-      img.style.width = "80px"; // smaller for graveyard
+      img.style.width = "80px";  // smaller graveyard
+      img.style.cursor = "pointer";
+      img.addEventListener("mouseenter", () => showCardPreview(c));
+      img.addEventListener("mouseleave", hideCardPreview);
       cardDiv.appendChild(img);
     } else {
       cardDiv.innerText = c.name;
     }
-    cardDiv.addEventListener("mouseenter", ()=> showCardPreview(c));
-    cardDiv.addEventListener("mouseleave", hideCardPreview);
     graveDiv.appendChild(cardDiv);
   });
+
+  // --- Mana pool & turn ---
+  const poolDiv = document.getElementById("manaPool");
+  if (poolDiv) poolDiv.innerText = `Mana Pool: ${Object.entries(player.manaPool).map(([k,v])=> v>0?`${k}:${v}`:"").filter(Boolean).join(", ")}`;
+  const turnDiv = document.getElementById("turnCounter");
+  if (turnDiv) turnDiv.innerText = `Turn: ${player.turn}`;
+}
 
   // --- Mana pool ---
   const poolDiv = document.getElementById("manaPool");
