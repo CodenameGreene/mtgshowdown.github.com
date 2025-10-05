@@ -64,11 +64,6 @@ function returnToMain() {
   document.getElementById("deckBuilder").style.display = "none";
   document.getElementById("playScreen").style.display = "none";
 }
-function goToPlayScreen() {
-  document.getElementById("mainScreen").style.display = "none";
-  document.getElementById("deckBuilder").style.display = "none";
-  document.getElementById("playScreen").style.display = "block";
-}
 
 window.showDeckBuilder = showDeckBuilder;
 window.returnToMain = returnToMain;
