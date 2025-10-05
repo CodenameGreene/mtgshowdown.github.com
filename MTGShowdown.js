@@ -526,13 +526,6 @@ function autoTapLandsForCost(cost) {
     }
     return false;
   };
-  function playLand(card) {
-  const entersTapped = card.entersTapped || false; // set this manually or via Scryfall oracle text
-  player.battlefield.push({ ...card, isTapped: entersTapped });
-  player.hand.splice(player.hand.indexOf(card), 1);
-  player.landsPlayed++;
-  renderPlayScreen();
-}
   // First satisfy colored requirements by tapping lands that produce those colors
   for (const col of ["W","U","B","R","G"]) {
     const need = (cost[col] || 0) - (player.manaPool[col] || 0);
@@ -550,6 +543,13 @@ function autoTapLandsForCost(cost) {
     tapLandForManaByIndex(ent.i);
   }
 payMana(cost);
+}
+function playLand(card) {
+  const entersTapped = card.entersTapped || false; // set this manually or via Scryfall oracle text
+  player.battlefield.push({ ...card, isTapped: entersTapped });
+  player.hand.splice(player.hand.indexOf(card), 1);
+  player.landsPlayed++;
+  renderPlayScreen();
 }
 function moveToGraveyard(card, from) {
   // from: "hand" | "battlefield"
