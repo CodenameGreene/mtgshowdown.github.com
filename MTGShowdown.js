@@ -726,27 +726,27 @@ function renderPlayScreen() {
       const sec = getCardSection(card);
       oppSections[sec].push(card);
     });
-     Object.entries(oppSections).forEach(([title, cards]) => {
-     if (cards.length === 0) return;
-      const secDiv = document.createElement("div");
-      secDiv.className = "battlefield-section opponent-section";
-      const label = document.createElement("div");
-      label.className = "battlefield-label";
-      label.innerText = title;
-      secDiv.appendChild(label);
-      const row = document.createElement("div");
-      row.className = "battlefield-row";
-      cards.forEach(card => {
-        const img = document.createElement("img");
-        img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
-        img.className = "card battlefield-card opponent-card";
-        img.onmouseenter = () => showCardPreview(card);
-        img.onmouseleave = hideCardPreview;
-        row.appendChild(img);
-      });
-      secDiv.appendChild(row);
-      opponentField.appendChild(secDiv);
-    });
+Object.entries(oppSections).forEach(([title, cards]) => {
+  if (cards.length === 0) return;
+  const secDiv = document.createElement("div");
+  secDiv.className = "battlefield-section opponent-section";
+  const label = document.createElement("div");
+  label.className = "battlefield-label";
+  label.innerText = title;
+  secDiv.appendChild(label);
+  const row = document.createElement("div");
+  row.className = "battlefield-row";
+  cards.forEach(card => {
+    const img = document.createElement("img");
+    img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+    img.className = "card battlefield-card opponent-card";
+    img.onmouseenter = () => showCardPreview(card);
+    img.onmouseleave = hideCardPreview;
+    row.appendChild(img);
+  });
+  secDiv.appendChild(row);
+  opponentField.appendChild(secDiv);
+}); // <--- CLOSE the loop here!
     const graveyardDiv = document.getElementById("graveyard");
     graveyardDiv.innerHTML = "";
      player.graveyard.forEach(c => {
