@@ -649,6 +649,7 @@ window.endTurn = endTurn;
 // =====================
 // Render play screen (fixed)
 function renderPlayScreen() {
+  console.log("✅ renderPlayScreen loaded successfully");
   const handDiv = document.getElementById("hand");
   const battlefieldDiv = document.getElementById("battlefield");
   const opponentField = document.getElementById("opponentBattlefield");
