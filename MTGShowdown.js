@@ -494,7 +494,9 @@ function isLand(card) {
 }
 
 function isPermanent(card) {
-    return card.type_line && (/creature|artifact|enchantment|planeswalker/i.test(card.type_line) || isLand(card));
+    if (!card.type_line) return false;
+    const type = card.type_line.toLowerCase();
+    return type.includes("creature") || type.includes("artifact") || type.includes("enchantment") || type.includes("planeswalker") || type.includes("land");
 }
 
 function getCardManaCost(card) {
