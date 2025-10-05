@@ -466,6 +466,17 @@ async function tapLandForManaByIndex(index) {
   player.manaPool = pool;
   renderPlayScreen();
 }
+function getCardSection(card) {
+  if (!card.type_line) return "Other";
+  const type = card.type_line;
+
+  if (type.includes("Land")) return "Land";
+  if (type.includes("Creature")) return "Creature";
+  if (type.includes("Enchantment")) return "Enchantment";
+  if (type.includes("Artifact")) return "Artifact";
+  if (type.includes("Planeswalker")) return "Planeswalker";
+  return "Other";
+}
 // Check if pool can pay required mana (colored amounts must match, generic can use anything)
 function canPayMana(cost) {
   const pool = {...player.manaPool};
