@@ -425,23 +425,28 @@ function tapLandForManaByIndex(index) {
   if (!land || land.isTapped) return;
 
   land.isTapped = true;
-  const tl = (land.type_line || "").toLowerCase();
   const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
 
-  // Produce mana based on land type_line
-  if (tl.includes("plains")) pool.W++;
-  else if (tl.includes("island")) pool.U++;
-  else if (tl.includes("swamp")) pool.B++;
-  else if (tl.includes("mountain")) pool.R++;
-  else if (tl.includes("forest")) pool.G++;
-  else pool.C++; // colorless or nonbasic that doesn't match any color word
+  // If Scryfall data contains produced_mana
+  if (Array.isArray(land.produced_mana) && land.produced_mana.length > 0) {
+    // If multiple possible colors (e.g., Triomes), pick first for now
+    const color = land.produced_mana[0];
+    pool[color] = (pool[color] || 0) + 1;
+    console.log(`${land.name} produced ${color} mana`);
+  } else {
+    // fallback: look for basic types or default to colorless
+    const tl = (land.type_line || "").toLowerCase();
+    if (tl.includes("plains")) pool.W++;
+    else if (tl.includes("island")) pool.U++;
+    else if (tl.includes("swamp")) pool.B++;
+    else if (tl.includes("mountain")) pool.R++;
+    else if (tl.includes("forest")) pool.G++;
+    else pool.C++;
+  }
 
   player.manaPool = pool;
-
-  console.log(`Tapped ${land.name} →`, pool);
   renderPlayScreen();
 }
-
 
 // Check if pool can pay required mana (colored amounts must match, generic can use anything)
 function canPayMana(cost) {
