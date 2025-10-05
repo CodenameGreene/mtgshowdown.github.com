@@ -726,7 +726,7 @@ function renderPlayScreen() {
       const sec = getCardSection(card);
       oppSections[sec].push(card);
     });
-Object.entries(oppSections).forEach(([title, cards]) => {
+  Object.entries(oppSections).forEach(([title, cards]) => {
   if (cards.length === 0) return;
   const secDiv = document.createElement("div");
   secDiv.className = "battlefield-section opponent-section";
@@ -747,14 +747,17 @@ Object.entries(oppSections).forEach(([title, cards]) => {
   secDiv.appendChild(row);
   opponentField.appendChild(secDiv);
 }); // <--- CLOSE the loop here!
-    const graveyardDiv = document.getElementById("graveyard");
-    graveyardDiv.innerHTML = "";
-     player.graveyard.forEach(c => {
-    const img = document.createElement("img");
-     img.src = c.image;
-    img.className = "card small-card";
-    graveyardDiv.appendChild(img);
-  });
+
+// Now graveyard goes here, outside of the opponentField loop
+const graveyardDiv = document.getElementById("graveyard");
+graveyardDiv.innerHTML = "";
+player.graveyard.forEach(c => {
+  const img = document.createElement("img");
+  img.src = c.image;
+  img.className = "card small-card";
+  graveyardDiv.appendChild(img);
+});
+
   // ===== MANA + TURN =====
   const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
   manaDiv.innerText = `Mana: W:${pool.W} U:${pool.U} B:${pool.B} R:${pool.R} G:${pool.G} C:${pool.C}`;
