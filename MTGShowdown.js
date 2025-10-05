@@ -396,22 +396,24 @@ window.playDeck = goToPlayScreen;
 
 // Mana parsing & helpers
 function parseManaCost(manaCost) {
-  // returns object {W:0,U:0,B:0,R:0,G:0,C:0}
   const mana = { W:0, U:0, B:0, R:0, G:0, C:0 };
   if (!manaCost) return mana;
-  // match {X} tokens
   const tokens = manaCost.match(/\{([^}]+)\}/g) || [];
   for (let t of tokens) {
     const sym = t.replace(/[{}]/g, '').trim();
-    // numeric generic like "3"
+    // strict numeric generic
     if (/^\d+$/.test(sym)) {
       mana.C += Number(sym);
-    } else {
-     // consider only single-letter color symbols W U B R G
-      const letter = sym[0].toUpperCase()
-      if (["W","U","B","R","G"].includes(letter)) mana[letter]++;
-      else mana.C++; // fallback: treat unknown as colorless
+      continue;
     }
+    // single-letter color tokens (or tokens that start with a color letter)
+    const letter = sym[0].toUpperCase();
+    if (["W","U","B","R","G"].includes(letter)) {
+      mana[letter]++;
+      continue;
+    }
+    // fallback: treat unknown/hybrid as colorless/generic
+    mana.C++;
   }
   return mana;
 }
