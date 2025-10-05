@@ -536,12 +536,12 @@ function renderPlayScreen() {
 // Helpers
 // =====================
 function isLand(card) {
-    return card.type_line?.toLowerCase().includes("land");
+    return card.type_line && card.type_line.toLowerCase().includes("land");
 }
 
 function isPermanent(card) {
-    const typeLine = card.type_line || "";
-    return /creature|artifact|enchantment|planeswalker/i.test(typeLine) || isLand(card);
+    if (!card.type_line) return false;
+    return /creature|artifact|enchantment|planeswalker/i.test(card.type_line) || isLand(card);
 }
 function getCardManaCost(card) {
     if (!card.mana_cost) return 0;
