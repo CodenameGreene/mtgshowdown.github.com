@@ -1489,11 +1489,8 @@ function renderPlayScreen() {
         row.appendChild(img);
 
       });
-
       secDiv.appendChild(row);
-
       opponentField.appendChild(secDiv);
-
     });
     const graveyardDiv = document.getElementById("graveyard");
     graveyardDiv.innerHTML = "";
@@ -1502,7 +1499,6 @@ function renderPlayScreen() {
      img.src = c.image;
     img.className = "card small-card";
     graveyardDiv.appendChild(img);
-  }
   });
   // ===== MANA + TURN =====
   const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
