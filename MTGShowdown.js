@@ -799,7 +799,7 @@ function drawHand(numCards = 7) {
   }
 
   // Shuffle deck if not already shuffled
-  shuffleArray(player.deck);
+  shuffle(player.deck);
 
   // Draw cards
   player.hand = player.deck.splice(0, numCards);
