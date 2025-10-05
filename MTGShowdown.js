@@ -692,8 +692,11 @@ function renderPlayScreen() {
     });
 
     // Update mana and turn
-    manaDiv.innerText = `Mana: W:${player.manaPool.W} U:${player.manaPool.U} B:${player.manaPool.B} R:${player.manaPool.R} G:${player.manaPool.G} C:${player.manaPool.C}`;
-    const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
+    const manaDiv = document.getElementById("manaDisplay");
+     if (manaDiv) {
+     const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
+     manaDiv.innerText = `Mana: W:${pool.W} U:${pool.U} B:${pool.B} R:${pool.R} G:${pool.G} C:${pool.C}`;
+    }    
     manaDiv.innerText = `Mana: W:${pool.W} U:${pool.U} B:${pool.B} R:${pool.R} G:${pool.G} C:${pool.C}`;
     turnDiv.innerText = `Turn: ${player.turn}`;
 
