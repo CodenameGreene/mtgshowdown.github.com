@@ -577,7 +577,7 @@ function getCreatureCost(card) {
 }
 // =====================
 // Play logic: play a card from hand
-function playCard(index) {
+aysnc function playCard(index) {
   const card = player.hand[index];
   if (!card) return;
   console.log("Attempting to play:", card.name, "type_line:", card.type_line, "mana_cost:", card.mana_cost);
