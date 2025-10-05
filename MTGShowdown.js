@@ -598,6 +598,15 @@ function getCardManaCostCount(card) {
   const matches = card.mana_cost.match(/\{[^}]+\}/g);
   return matches ? matches.length : 0;
 }
+function getCreatureCost(card) {
+  let cost = parseManaCost(card.mana_cost);
+  if (card.affinity) {
+    // card.affinity = {type:"artifact"}
+    const count = player.battlefield.filter(c => c.type_line.toLowerCase().includes(card.affinity.type)).length;
+    cost.C = Math.max(0, cost.C - count); // reduce generic mana cost
+  }
+  return cost;
+}
 
 // =====================
 // Play logic: play a card from hand
