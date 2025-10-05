@@ -790,23 +790,22 @@ player.graveyard.forEach(c => {
   btn.onclick = endTurn;
   endTurnContainer.appendChild(btn);
 }
-function drawHand(numCards = 7) {
+async function drawHand(numCards = 7) {
   console.log("🃏 Drawing opening hand...");
-  
+
   if (!player.deck || player.deck.length === 0) {
     console.error("⚠️ No deck found or deck is empty!");
     return;
   }
 
-  // Shuffle deck if not already shuffled
-  shuffle(player.deck);
+  // Make sure all cards have type_line and images first
+  await ensureTypeLines(player.deck);
 
   // Draw cards
   player.hand = player.deck.splice(0, numCards);
-  
-  console.log(`✅ Drew ${numCards} cards:`, player.hand.map(c => c.name));
+  console.log(`✅ Drew ${player.hand.length} cards`);
 
-  renderHand();
+  renderPlayScreen();
 }
 function renderHand() {
   const handDiv = document.getElementById("hand");
