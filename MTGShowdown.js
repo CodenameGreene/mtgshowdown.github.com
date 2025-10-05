@@ -521,15 +521,20 @@ function payMana(cost) {
 
 // Try to auto-tap untapped lands until canPayMana(cost) or no lands left
 // Strategy: tap lands that produce needed colors first, then any land for generic
+function playLand(card) {
+  const entersTapped = card.entersTapped || false;
+  player.battlefield.push({ ...card, isTapped: entersTapped });
+  player.hand.splice(player.hand.indexOf(card), 1);
+  player.landsPlayed++;
+  renderPlayScreen();
+}
+
 function autoTapLandsForCost(cost) {
-  // if already payable, nothing to do
   if (canPayMana(cost)) return true;
 
-  // prepare list of untapped lands with their color result
   const untapped = player.battlefield.map((c,i) => ({c,i}))
     .filter(x => isLand(x.c) && !x.c.isTapped);
 
-  // Helper to tap single land of a desired color if available
   const tapOneOfColor = (colorChars) => {
     for (let i=0;i<untapped.length;i++) {
       const ent = untapped[i];
@@ -541,21 +546,29 @@ function autoTapLandsForCost(cost) {
                          : tl.includes("forest") ? "G" : "C";
       if (colorChars.includes(producedColor)) {
         tapLandForManaByIndex(ent.i);
-        // remove this entry so we don't tap same land twice
         untapped.splice(i,1);
         return true;
       }
     }
     return false;
   };
-  function playLand(card) {
-  const entersTapped = card.entersTapped || false; // set this manually or via Scryfall oracle text
-  player.battlefield.push({ ...card, isTapped: entersTapped });
-  player.hand.splice(player.hand.indexOf(card), 1);
-  player.landsPlayed++;
-  renderPlayScreen();
-}
 
+  // First satisfy colored requirements
+  for (const col of ["W","U","B","R","G"]) {
+    const need = (cost[col] || 0) - (player.manaPool[col] || 0);
+    for (let t=0; t<need; t++) tapOneOfColor([col]);
+  }
+
+  // Tap remaining lands for generic mana
+  const adjustedCost = {...cost};
+  while (!canPayMana(adjustedCost) && untapped.length > 0) {
+    const ent = untapped.shift();
+    tapLandForManaByIndex(ent.i);
+  }
+
+  payMana(adjustedCost);
+  return true;
+}
   // First satisfy colored requirements by tapping lands that produce those colors
   for (const col of ["W","U","B","R","G"]) {
     const need = (cost[col] || 0) - (player.manaPool[col] || 0);
