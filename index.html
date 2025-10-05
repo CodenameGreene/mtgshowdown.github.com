@@ -133,18 +133,9 @@
     <button class="small-button" onclick="endTurn()">End Turn</button>
   </div>
   <!-- Hover Preview -->
-  <div id="hoverPreview" style="
-      display:none;
-      position:fixed;
-      right:20px;
-      top:20px;
-      width:300px;
-      border:2px solid black;
-      background:#fff;
-      z-index:2000;">
-    <img id="hoverPreviewImg" src="" alt="Card Preview" style="width:100%; display:block;"/>
-  </div>
-
+<div id="hoverPreview" style="display:none; position:absolute; z-index:1000;">
+    <img id="hoverPreviewImg" src="" alt="Card Preview" style="max-width:200px;">
+</div>
   <!-- Dropdown Script -->
   <script>
     function toggleDropdown() {
