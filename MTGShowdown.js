@@ -722,3 +722,35 @@ function endTurn() {
     player.turn++;
     renderPlayScreen();
 }
+// =====================
+// Card Hover Preview
+// =====================
+function showCardPreview(card) {
+    const previewDiv = document.getElementById("hoverPreview");
+    const previewImg = document.getElementById("hoverPreviewImg");
+
+    if (!previewDiv || !previewImg) return;
+
+    // Determine image URL
+    let imgSrc = "";
+    if (card.image) {
+        imgSrc = card.image;
+    } else if (card.name) {
+        imgSrc = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
+    }
+
+    if (imgSrc) {
+        previewImg.src = imgSrc;
+        previewDiv.style.display = "block";
+    }
+}
+
+function hideCardPreview() {
+    const previewDiv = document.getElementById("hoverPreview");
+    const previewImg = document.getElementById("hoverPreviewImg");
+
+    if (!previewDiv || !previewImg) return;
+
+    previewDiv.style.display = "none";
+    previewImg.src = ""; // clear previous image
+}
