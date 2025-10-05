@@ -580,12 +580,12 @@ function playCard(index) {
         return;
     }
 
-    const cost = getCardManaCost(card);
-    const untappedLands = player.battlefield.filter(c => isLand(c) && !c.isTapped);
-    if (untappedLands.length < cost) {
-        alert("Not enough mana! Tap more lands first.");
-        return;
-    }
+      const cost = parseManaCost(card.mana_cost);
+     if (!canPayMana(cost)) {
+        alert("Not enough mana!");
+       return;
+      }
+    payMana(cost);
 
     for (let i = 0; i < cost; i++) untappedLands[i].isTapped = true;
     player.hand.splice(index, 1);
