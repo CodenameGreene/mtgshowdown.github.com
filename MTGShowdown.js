@@ -419,245 +419,119 @@ async function tapLandForManaByIndex(index) {
   const land = player.battlefield[index];
   if (!land || land.isTapped) return;
   land.isTapped = true;
-
   const pool = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
-
-
-
   // Try to fill in produced_mana if not already stored
-
   if (!land.produced_mana) {
-
     try {
-
       const data = await fetch(`https://api.scryfall.com/cards/${land.scryfallId || `named?exact=${encodeURIComponent(land.name)}`}`)
-
         .then(r => r.json());
-
       land.produced_mana = data.produced_mana || [];
-
     } catch (err) {
-
       console.warn("Failed to fetch produced_mana for", land.name, err);
-
       land.produced_mana = [];
-
     }
-
   }
-
-
-
   // If Scryfall data says what it produces
-
   if (Array.isArray(land.produced_mana) && land.produced_mana.length > 0) {
-
     if (land.produced_mana.length === 1) {
-
       const color = land.produced_mana[0];
-
       pool[color] = (pool[color] || 0) + 1;
-
       console.log(`${land.name} produced ${color} mana`);
-
     } else {
-
       // Multi-color land (e.g., shockland, triome)
-
       const choice = prompt(`Choose mana color for ${land.name}:\n${land.produced_mana.join(", ")}`);
-
       const selected = (land.produced_mana.includes(choice?.toUpperCase())) ? choice.toUpperCase() : land.produced_mana[0];
-
       pool[selected] = (pool[selected] || 0) + 1;
-
       console.log(`${land.name} produced ${selected} mana`);
-
     }
-
   } else {
-
     // fallback: basic or unknown land
-
     const tl = (land.type_line || "").toLowerCase();
-
     if (tl.includes("plains")) pool.W++;
-
     else if (tl.includes("island")) pool.U++;
-
     else if (tl.includes("swamp")) pool.B++;
-
     else if (tl.includes("mountain")) pool.R++;
-
     else if (tl.includes("forest")) pool.G++;
-
     else pool.C++;
-
   }
-
-
-
   player.manaPool = pool;
-
-  renderPlayScreen();
-
+ renderPlayScreen();
 }
-
 function getCardSection(card) {
-
   if (!card.type_line) return "Other";
-
   const type = card.type_line;
-
-
-
   if (type.includes("Land")) return "Land";
-
   if (type.includes("Creature")) return "Creature";
-
   if (type.includes("Enchantment")) return "Enchantment";
-
   if (type.includes("Artifact")) return "Artifact";
-
   if (type.includes("Planeswalker")) return "Planeswalker";
-
   return "Other";
-
 }
 
 // Check if pool can pay required mana (colored amounts must match, generic can use anything)
-
 function canPayMana(cost) {
-
   const pool = {...player.manaPool};
-
   // check colored requirements
-
   for (const col of ["W","U","B","R","G"]) {
-
     const need = cost[col] || 0;
-
     if (need > (pool[col] || 0)) return false;
-
-    pool[col] -= need;
-
+  pool[col] -= need;
   }
-
   // generic / colorless (C) must be paid from any remaining mana
-
   const genericNeed = cost.C || 0;
-
   let available = pool.W + pool.U + pool.B + pool.R + pool.G + pool.C;
-
   return available >= genericNeed;
-
 }
-
-
-
 // pay mana from pool (assumes canPayMana returned true)
-
 function payMana(cost) {
-
   for (const col of ["W","U","B","R","G"]) {
-
     const use = Math.min(player.manaPool[col] || 0, cost[col] || 0);
-
     player.manaPool[col] -= use;
-
   }
-
   // generic cost: consume any mana from colors first then C
-
   let generic = cost.C || 0;
-
-  const order = ["W","U","B","R","G","C"];
-
+ const order = ["W","U","B","R","G","C"];
   for (const sym of order) {
-
     while (generic > 0 && player.manaPool[sym] > 0) {
-
       player.manaPool[sym]--;
-
       generic--;
-
     }
-
   }
-
 }
-
-
-
 // Try to auto-tap untapped lands until canPayMana(cost) or no lands left
-
 // Strategy: tap lands that produce needed colors first, then any land for generic
 
 function autoTapLandsForCost(cost) {
-
   // if already payable, nothing to do
-
   if (canPayMana(cost)) return true;
-
-
-
   // prepare list of untapped lands with their color result
-
   const untapped = player.battlefield.map((c,i) => ({c,i}))
-
     .filter(x => isLand(x.c) && !x.c.isTapped);
-
-
-
-  // Helper to tap single land of a desired color if available
-
+// Helper to tap single land of a desired color if available
   const tapOneOfColor = (colorChars) => {
-
     for (let i=0;i<untapped.length;i++) {
-
       const ent = untapped[i];
-
       const tl = (ent.c.type_line || "").toLowerCase();
-
-      const producedColor = tl.includes("plains") ? "W"
-
-                         : tl.includes("island") ? "U"
-
-                         : tl.includes("swamp") ? "B"
-
-                         : tl.includes("mountain") ? "R"
-
-                         : tl.includes("forest") ? "G" : "C";
-
+   const producedColor = tl.includes("plains") ? "W"
+   : tl.includes("island") ? "U"
+   : tl.includes("swamp") ? "B"
+  :tl.includes("mountain") ? "R"
+  : tl.includes("forest") ? "G" : "C";
       if (colorChars.includes(producedColor)) {
-
         tapLandForManaByIndex(ent.i);
-
         // remove this entry so we don't tap same land twice
-
         untapped.splice(i,1);
-
         return true;
-
       }
-
     }
-
     return false;
-
   };
-
   function playLand(card) {
-
   const entersTapped = card.entersTapped || false; // set this manually or via Scryfall oracle text
-
   player.battlefield.push({ ...card, isTapped: entersTapped });
-
   player.hand.splice(player.hand.indexOf(card), 1);
-
   player.landsPlayed++;
-
   renderPlayScreen();
-
 }
   // First satisfy colored requirements by tapping lands that produce those colors
   for (const col of ["W","U","B","R","G"]) {
@@ -683,8 +557,6 @@ function moveToGraveyard(card, from) {
   if (from === "hand") player.hand = player.hand.filter(c => c !== card);
   else if (from === "battlefield") player.battlefield = player.battlefield.filter(c => c !== card);
   renderPlayScreen();
-
-}
 
 
 
