@@ -592,5 +592,12 @@ function autoTapLandsForCost(cost) {
   renderPlayScreen();
 }
 window.autoTapLandsForCost = autoTapLandsForCost;
-
-
+function endTurn(){
+  player.battlefield.forEach(c => c.isTapped = false);
+  if (player.deck.length > 0) player.hand.push(player.deck.shift());
+  player.landsPlayed = 0;
+  player.manaPool = { W:0, U:0, B:0, R:0, G:0, C:0 };
+  player.turn++;
+  renderPlayScreen();
+  } 
+window.endTurn = endTurn;
