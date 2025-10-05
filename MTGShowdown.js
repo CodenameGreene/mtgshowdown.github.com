@@ -501,47 +501,41 @@ function payMana(cost) {
 // Try to auto-tap untapped lands until canPayMana(cost) or no lands left
 // Strategy: tap lands that produce needed colors first, then any land for generic
 
-function autoTapLandsForCost(cost) {
-  // if already payable, nothing to do
+async function autoTapLandsForCost(cost) {
   if (canPayMana(cost)) return true;
-  // prepare list of untapped lands with their color result
-  const untapped = player.battlefield.map((c,i) => ({c,i}))
-    .filter(x => isLand(x.c) && !x.c.isTapped);
-// Helper to tap single land of a desired color if available
-  const tapOneOfColor = (colorChars) => {
-    for (let i=0;i<untapped.length;i++) {
+  const untapped = player.battlefield.map((c,i)=>({c,i}))
+                   .filter(x=>isLand(x.c)&&!x.c.isTapped);
+
+  const tapOneOfColor = async (colorChars) => {
+    for (let i=0;i<untapped.length;i++){
       const ent = untapped[i];
-      const tl = (ent.c.type_line || "").toLowerCase();
-   const producedColor = tl.includes("plains") ? "W"
-   : tl.includes("island") ? "U"
-   : tl.includes("swamp") ? "B"
-  :tl.includes("mountain") ? "R"
-  : tl.includes("forest") ? "G" : "C";
-      if (colorChars.includes(producedColor)) {
-        tapLandForManaByIndex(ent.i);
-        // remove this entry so we don't tap same land twice
+      const tl = (ent.c.type_line||"").toLowerCase();
+      const producedColor = tl.includes("plains")?"W":tl.includes("island")?"U":tl.includes("swamp")?"B":tl.includes("mountain")?"R":tl.includes("forest")?"G":"C";
+      if(colorChars.includes(producedColor)){
+        await tapLandForManaByIndex(ent.i);
         untapped.splice(i,1);
         return true;
       }
     }
     return false;
   };
-  // First satisfy colored requirements by tapping lands that produce those colors
-  for (const col of ["W","U","B","R","G"]) {
-    const need = (cost[col] || 0) - (player.manaPool[col] || 0);
-    for (let t=0; t<need; t++) {
-      const tapped = tapOneOfColor([col]);
-      if (!tapped) break;
+
+  for(const col of ["W","U","B","R","G"]){
+    const need = (cost[col]||0) - (player.manaPool[col]||0);
+    for(let t=0;t<need;t++){
+      const tapped = await tapOneOfColor([col]);
+      if(!tapped) break;
     }
   }
 
-  // If still can't pay, tap any remaining lands (for generic)
-   while (!canPayMana(cost) && untapped.length > 0) {
-  const ent = untapped.shift();
-  tapLandForManaByIndex(ent.i);
+  while(!canPayMana(cost) && untapped.length>0){
+    const ent = untapped.shift();
+    await tapLandForManaByIndex(ent.i);
+  }
+  payMana(cost);
+  return true;
 }
-payMana(cost);
-}
+
 function playLand(card) {
   const entersTapped = card.entersTapped || false; // set this manually or via Scryfall oracle text
   player.battlefield.push({ ...card, isTapped: entersTapped });
