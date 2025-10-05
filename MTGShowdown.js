@@ -15,7 +15,6 @@ let player = {
   landsPlayed: 0,
   turn: 1,
   manaPool: { W:0, U:0, B:0, R:0, G:0, C:0 }
-
 };
 let opponent = {
   deck: [],
@@ -29,13 +28,11 @@ let opponent = {
 // =====================
 // Utilities
 // =====================
-
 function changeMenuLabel(label) {
   document.getElementById("menuButton").innerText = label + " ▾";
 }
 function toggleDropdown() {
   document.getElementById("formatDropdown").classList.toggle("show");
-
 }
 window.changeMenuLabel = changeMenuLabel;
 window.toggleDropdown = toggleDropdown;
@@ -298,123 +295,63 @@ async function checkDeckLegality() {
     return false;
   }
   const illegal = [];
-
   for (let c of currentDeck.cards) {
-
     if (!c.scryfallId) continue;
-
     try {
-
       const res = await fetch(`https://api.scryfall.com/cards/${c.scryfallId}`);
-
       const data = await res.json();
-
       if (!data.legalities || data.legalities[format.toLowerCase()] !== "legal") illegal.push(c.name);
-
     } catch (e) { illegal.push(`${c.name} (error checking legality)`); }
-
   }
-
   if (illegal.length) { alert(`Deck NOT legal for ${format}.\nIllegal: ${illegal.join("\n")}`); document.getElementById("playButton").disabled = true; return false; }
-
   document.getElementById("playButton").disabled = false; return true;
-
 }
-
 window.checkDeckLegality = checkDeckLegality;
-
-
-
 // =====================
-
 // Start Game: ensure type_lines & mana_cost present
-
 async function ensureTypeLines(deck) {
-
   // deck is array of card objects; if missing scryfallId prefer fetch by name
-
   for (let card of deck) {
-
     if ((!card.type_line || card.type_line === "Unknown") || card.mana_cost === undefined) {
-
       try {
-
-        let data = null;
-
-        if (card.scryfallId) {
-
+      let data = null;
+        if (card.scryfallId) 
           const r = await fetch(`https://api.scryfall.com/cards/${card.scryfallId}`);
-
           data = await r.json();
-
         } else if (card.name) {
-
           const r = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}`);
-
           data = await r.json();
-
         }
-
         if (data) {
-
           card.type_line = data.type_line || card.type_line || "Unknown";
-
           card.mana_cost = card.mana_cost || data.mana_cost || "";
-
           // prefer the normal image if available
-
           card.image = card.image || data.image_uris?.normal || card.image || "";
-
-          // store id if available
-
+         // store id if available
           card.scryfallId = card.scryfallId || data.id;
-
-        } else {
-
+        } 
+        else {
           card.type_line = card.type_line || "Unknown";
-
           card.mana_cost = card.mana_cost || "";
-
         }
-
       } catch (e) {
-
         console.warn("ensureTypeLines fetch failed for", card.name, e);
-
         card.type_line = card.type_line || "Unknown";
-
         card.mana_cost = card.mana_cost || "";
-
       }
-
     }
-
   }
-
   return deck;
-
 }
-
-
 
 function shuffle(array) {
-
   // Fisher-Yates - strong shuffle
-
   for (let i = array.length - 1; i > 0; i--) {
-
     const j = Math.floor(Math.random() * (i + 1));
-
     [array[i], array[j]] = [array[j], array[i]];
-
   }
-
   return array;
-
 }
-
-
-
 async function startGame() {
 
   if (!currentDeck.cards || getDeckSize() === 0) { alert("Your deck is empty!"); return; }
