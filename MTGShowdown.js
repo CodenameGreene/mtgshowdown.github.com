@@ -566,10 +566,11 @@ function isLand(card) {
     return card.type_line?.toLowerCase().includes("land");
 }
 
-function isPermanent(card) {
-    if (!card.type_line) return false;
-    const types = card.type_line.toLowerCase();
-    return /land|creature|artifact|enchantment|planeswalker/.test(types);
+async function isPermanent(card) {
+    const typeLine = await fetchCardTypeLine(card);
+    if (!typeLine) return false;
+
+    return /land|creature|artifact|enchantment|planeswalker/i.test(typeLine);
 }
 async function ensureTypeLines(deck) {
     const updatedDeck = [];
@@ -591,12 +592,30 @@ async function ensureTypeLines(deck) {
 
     return updatedDeck;
 }
+async function fetchCardTypeLine(card) {
+    if (card.type_line) return card.type_line; // already exists locally
+
+    if (!card.scryfallId) return null; // no ID, can't fetch
+
+    try {
+        const res = await fetch(`https://api.scryfall.com/cards/${card.scryfallId}`);
+        const data = await res.json();
+        card.type_line = data.type_line; // cache it locally for this game
+        return card.type_line;
+    } catch (e) {
+        console.error("Error fetching type_line for", card.name, e);
+        return null;
+    }
+}
+
 
 function getCardManaCost(card) {
     if (!card.mana_cost) return 0;
     const matches = card.mana_cost.match(/\{[^}]+\}/g);
     return matches ? matches.length : 0;
 }
+
+
 
 // =====================
 // Play a card from hand
