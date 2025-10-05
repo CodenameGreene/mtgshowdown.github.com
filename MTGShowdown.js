@@ -342,6 +342,7 @@ async function ensureTypeLines(deck) {
       }
     }
   }
+  console.log("✅ ensureTypeLines finished, deck length =", deck.length);
   return deck;
 }
 
