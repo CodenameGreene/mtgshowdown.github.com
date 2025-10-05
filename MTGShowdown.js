@@ -1,6 +1,7 @@
 // MTGShowdown.js (fixed & cleaned)
 // =====================
 // Firebase already initialized in index.html
+console.log("✅ MTGShowdown.js loaded successfully");
 const auth = window.auth;
 const db = window.db;
 // =====================
