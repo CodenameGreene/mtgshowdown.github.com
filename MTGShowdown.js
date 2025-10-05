@@ -1,16 +1,9 @@
 // MTGShowdown.js (fixed & cleaned)
-
 // =====================
-
-
-
 // Firebase already initialized in index.html
 
 const auth = window.auth;
-
 const db = window.db;
-
-
 
 // =====================
 
@@ -19,23 +12,14 @@ const db = window.db;
 // =====================
 
 let currentDeck = { name: "", format: "", cards: [] };
-
-
-
 let player = {
 
   deck: [],
-
   hand: [],
-
   battlefield: [],
-
   graveyard: [],
-
   landsPlayed: 0,
-
   turn: 1,
-
   manaPool: { W:0, U:0, B:0, R:0, G:0, C:0 }
 
 };
@@ -43,217 +27,115 @@ let player = {
 
 
 let opponent = {
-
   deck: [],
-
   hand: [],
-
   battlefield: [],
-
   graveyard: [],
-
   landsPlayed: 0,
-
   turn: 1,
-
   manaPool: { W:0, U:0, B:0, R:0, G:0, C:0 }
 
 };
-
-
-
 // =====================
 
 // Utilities
 
 // =====================
 
-
-
 function changeMenuLabel(label) {
 
   document.getElementById("menuButton").innerText = label + " ▾";
-
 }
-
 function toggleDropdown() {
-
   document.getElementById("formatDropdown").classList.toggle("show");
 
 }
-
 window.changeMenuLabel = changeMenuLabel;
-
 window.toggleDropdown = toggleDropdown;
-
-
-
 window.onclick = function(event) {
-
   if (!event.target.matches('#menuButton')) {
-
     const dropdown = document.getElementById("formatDropdown");
-
     if (dropdown.classList.contains("show")) dropdown.classList.remove("show");
-
   }
 
 };
 
-
-
 // =====================
-
 // Screen Navigation
-
 // =====================
-
 function showDeckBuilder() {
-
   document.getElementById("mainScreen").style.display = "none";
-
   document.getElementById("deckBuilder").style.display = "block";
-
-}
-
-function returnToMain() {
-
-  document.getElementById("mainScreen").style.display = "block";
-
-  document.getElementById("deckBuilder").style.display = "none";
-
   document.getElementById("playScreen").style.display = "none";
-
 }
-
+function returnToMain() {
+  document.getElementById("mainScreen").style.display = "block";
+  document.getElementById("deckBuilder").style.display = "none";
+  document.getElementById("playScreen").style.display = "none";
+}
 window.showDeckBuilder = showDeckBuilder;
-
 window.returnToMain = returnToMain;
-
-
-
 // =====================
 
 // Deck selection (exposed for HTML onchange)
 
 // =====================
-
 function mainScreenDeckChanged() {
-
   const deckId = document.getElementById("mainDeckSelect").value;
-
   if (!deckId) {
-
     currentDeck = { name: "", format: "", cards: [] };
-
     updatePlayButton();
-
     return;
-
   }
 
   db.collection("decks").doc(deckId).get().then(doc => {
-
-    if (!doc.exists) return alert("Deck not found.");
-
+  if (!doc.exists) return alert("Deck not found.");
     currentDeck = doc.data();
-
     currentDeck.id = doc.id;
-
     if (!currentDeck.cards) currentDeck.cards = [];
-
     document.getElementById("deckNameInput").value = currentDeck.name || "";
-
     document.getElementById("deckFormatSelect").value = currentDeck.format || "";
-
     renderDeck();
-
     updatePlayButton();
-
   }).catch(console.error);
-
 }
-
 window.mainScreenDeckChanged = mainScreenDeckChanged;
-
-
-
 function updatePlayButton() {
-
   const selected = document.getElementById("mainDeckSelect").value;
-
   const btn = document.getElementById("playButton");
-
   if (btn) btn.disabled = !selected;
-
 }
-
 window.updatePlayButton = updatePlayButton;
-
-
-
 // =====================
-
 // Auth & deck saving/loading (unchanged logic, just wired up)
-
 // =====================
-
-
-
 function login() {
-
   const email = document.getElementById("email").value;
-
   const password = document.getElementById("password").value;
-
   auth.signInWithEmailAndPassword(email, password)
-
     .then(() => {
-
-      document.getElementById("status").style.color = "green";
-
+    document.getElementById("status").style.color = "green";
       document.getElementById("status").innerText = "Login successful!";
-
       loadUserDecks();
-
       loadSavedDecks();
-
     }).catch(error => {
-
       document.getElementById("status").style.color = "red";
-
       document.getElementById("status").innerText = error.message;
-
     });
-
 }
-
 function signup() {
-
   const email = document.getElementById("email").value;
-
   const password = document.getElementById("password").value;
-
   auth.createUserWithEmailAndPassword(email, password)
-
     .then(() => {
-
       document.getElementById("status").style.color = "green";
-
       document.getElementById("status").innerText = "Account created!";
-
       loadUserDecks();
-
       loadSavedDecks();
-
     }).catch(error => {
-
       document.getElementById("status").style.color = "red";
-
       document.getElementById("status").innerText = error.message;
-
     });
-
 }
 
 function logout() {
