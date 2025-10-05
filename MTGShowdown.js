@@ -666,27 +666,6 @@ function renderPlayScreen() {
     battlefieldDiv.appendChild(img);
   });
 
-  // Mana pool (formatted as W:0 U:0 B:0 R:0 G:0 C:0)
-  const p = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
-  manaDiv.innerText = `W:${p.W}  U:${p.U}  B:${p.B}  R:${p.R}  G:${p.G}  C:${p.C}`;
-
-  // Turn
-  turnDiv.innerText = `Turn: ${player.turn}`;
-
-  // End Turn button
-  let endTurnContainer = document.getElementById("endTurnContainer");
-  if (!endTurnContainer) {
-    endTurnContainer = document.createElement("div");
-    endTurnContainer.id = "endTurnContainer";
-    document.getElementById("playScreen").appendChild(endTurnContainer);
-  }
-  endTurnContainer.innerHTML = "";
-  const btn = document.createElement("button");
-  btn.className = "small-button end-turn-btn";
-  btn.innerText = "End Turn";
-  btn.onclick = endTurn;
-  endTurnContainer.appendChild(btn);
-}
   // update mana display (formatted)
   const pool = player.manaPool || {W:0,U:0,B:0,R:0,G:0,C:0};
   manaDiv.innerText = `Mana: W:${pool.W} U:${pool.U} B:${pool.B} R:${pool.R} G:${pool.G} C:${pool.C}`;
@@ -708,7 +687,6 @@ function renderPlayScreen() {
   btn.onclick = endTurn;
   endTurnContainer.appendChild(btn);
 }
-
 // =====================
 // Hover preview helpers
 function showCardPreview(card) {
