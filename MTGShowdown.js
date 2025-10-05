@@ -376,12 +376,17 @@ function shuffle(array) {
   }
   return array;
 }
-
 async function startGame() {
   if (!currentDeck.cards || getDeckSize() === 0) { alert("Your deck is empty!"); return; }
+
+  // Ensure play screen is visible
+  document.getElementById("mainScreen").style.display = "none";
+  document.getElementById("deckBuilder").style.display = "none";
+  document.getElementById("playScreen").style.display = "block";
+
   let full = [];
   currentDeck.cards.forEach(c => {
-    for (let i=0;i<(c.qty||0);i++) full.push({ ...c });
+    for (let i = 0; i < (c.qty||0); i++) full.push({ ...c });
   });
   full = await ensureTypeLines(full);
   full = shuffle(full);
