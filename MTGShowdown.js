@@ -446,23 +446,28 @@ window.checkDeckLegality = checkDeckLegality;
 // =====================
 // Start Game
 // =====================
-async function ensureTypeLines(deck) {
+sync function ensureTypeLines(deck) {
     for (let card of deck) {
-        if (!card.type_line && card.scryfallId) {
+        if (!card.type_line || card.type_line === "Unknown") {
             try {
-                const res = await fetch(`https://api.scryfall.com/cards/${card.scryfallId}`);
-                const data = await res.json();
-                card.type_line = data.type_line || "Unknown";
-            } catch {
+                let data;
+                if (card.scryfallId) {
+                    const res = await fetch(`https://api.scryfall.com/cards/${card.scryfallId}`);
+                    data = await res.json();
+                } else if (card.name) {
+                    const res = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}`);
+                    data = await res.json();
+                }
+                card.type_line = data?.type_line || "Unknown";
+                card.image = card.image || data?.image_uris?.normal || "";
+            } catch (e) {
+                console.warn("Failed to fetch type_line for", card.name);
                 card.type_line = "Unknown";
             }
-        } else if (!card.type_line) {
-            card.type_line = "Unknown";
         }
     }
     return deck;
 }
-
 async function startGame() {
     if (!currentDeck.cards || getDeckSize() === 0) {
         alert("Your deck is empty!");
