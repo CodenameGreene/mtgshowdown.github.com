@@ -647,6 +647,13 @@ function playCard(index) {
   renderPlayScreen();
 }
 window.playCard = playCard;
+function playInstant(index) {
+  const card = player.hand[index];
+  if (!card || !card.type_line.toLowerCase().includes("instant")) return;
+  // For now, just trigger the effect placeholder
+  alert(`${card.name} resolves!`);
+  moveToGraveyard(card, "hand");
+}
 
 // tapCard for clicking land on battlefield (index)
 function tapCard(index) {
