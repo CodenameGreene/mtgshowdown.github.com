@@ -75,6 +75,11 @@ function mainScreenDeckChanged() {
     });
 }
 window.mainScreenDeckChanged = mainScreenDeckChanged;
+function updatePlayButton() {
+    const selected = document.getElementById("mainDeckSelect").value;
+    document.getElementById("playButton").disabled = !selected;
+}
+window.updatePlayButton = updatePlayButton;
 
 
 function goToPlayScreen() {
