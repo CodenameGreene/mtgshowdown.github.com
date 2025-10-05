@@ -655,6 +655,18 @@ function tapCard(index) {
   tapLandForManaByIndex(index);
 }
 window.tapCard = tapCard;
+function tapCreatureForMana(index) {
+  const creature = player.battlefield[index];
+  if (!creature || !creature.type_line.toLowerCase().includes("creature")) return;
+  if (creature.isTapped) return;
+
+  creature.isTapped = true;
+  const produced = creature.produced_mana || []; // array of mana symbols
+  const pool = player.manaPool;
+  produced.forEach(m => pool[m] = (pool[m] || 0) + 1);
+  player.manaPool = pool;
+  renderPlayScreen();
+}
 
 function endTurn() {
   // Untap all permanents
