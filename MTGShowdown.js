@@ -638,7 +638,7 @@ function renderPlayScreen() {
   handDiv.innerHTML = "";
   battlefieldDiv.innerHTML = "";
 
-  // Hand cards
+  // Hand
   player.hand.forEach((card, idx) => {
     const img = document.createElement("img");
     img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
@@ -650,7 +650,7 @@ function renderPlayScreen() {
     handDiv.appendChild(img);
   });
 
-  // Battlefield cards (no labels)
+  // Battlefield (no name labels)
   player.battlefield.forEach((card, idx) => {
     const img = document.createElement("img");
     img.src = card.image || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&format=image`;
@@ -659,23 +659,21 @@ function renderPlayScreen() {
     img.style.filter = card.isTapped ? "grayscale(70%)" : "none";
     img.onmouseenter = () => showCardPreview(card);
     img.onmouseleave = hideCardPreview;
-
-   if (isLand(card)) {
-  img.style.cursor = "pointer";
-  img.onclick = () => tapLandForManaByIndex(idx); 
-}
-
+    if (isLand(card)) {
+      img.style.cursor = "pointer";
+      img.onclick = () => tapLandForManaByIndex(idx);
+    }
     battlefieldDiv.appendChild(img);
   });
 
-  // Update mana pool display
+  // Mana pool (formatted as W:0 U:0 B:0 R:0 G:0 C:0)
   const p = player.manaPool || { W:0, U:0, B:0, R:0, G:0, C:0 };
   manaDiv.innerText = `W:${p.W}  U:${p.U}  B:${p.B}  R:${p.R}  G:${p.G}  C:${p.C}`;
 
-  // Turn display
+  // Turn
   turnDiv.innerText = `Turn: ${player.turn}`;
 
-  // Ensure single End Turn button
+  // End Turn button
   let endTurnContainer = document.getElementById("endTurnContainer");
   if (!endTurnContainer) {
     endTurnContainer = document.createElement("div");
