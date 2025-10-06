@@ -615,6 +615,12 @@ async function playCard(index) {
     renderPlayScreen();
     return;
   }
+  
+  // === INSTANT / SORCERY ===
+  if (card.type_line.toLowerCase().includes("instant") || card.type_line.toLowerCase().includes("sorcery")) {
+    await playInstant(index);
+    return;
+  }
 
   if (!isPermanent(card)) {
     alert("Only permanents (creature, artifact, enchantment, planeswalker) can be played to the battlefield!");
